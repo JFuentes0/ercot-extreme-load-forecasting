@@ -1,0 +1,39 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Raw and derived data
+data/raw/*
+data/shared/*
+data/track_a/*
+data/track_b/*
+!data/**/.gitkeep
+
+# Training outputs
+runs/*
+mlruns/*
+*.pt
+*.pth
+*.ckpt
+
+# Generated experiment artifacts
+artifacts/track_a/*
+artifacts/track_b/*
+artifacts/reviews/*
+!artifacts/**/.gitkeep
+
+# Editor and OS files
+.vscode/
+.DS_Store
+Thumbs.db
