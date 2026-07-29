@@ -1,0 +1,26 @@
+[project]
+name = "ercot-extreme-load-forecasting"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scipy",
+    "pyyaml",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+]
+track-a = [
+    "torch",
+    "mlflow",
+]
+track-b = [
+    "scikit-learn",
+]
