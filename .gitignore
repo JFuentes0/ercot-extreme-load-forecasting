@@ -14,8 +14,18 @@ htmlcov/
 !.env.example
 
 # Raw and derived data
+#
+# Imported artifacts never enter git. Provenance lives in
+# docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv, which records the source path,
+# source and destination SHA-256, and byte sizes for every import -- so the data
+# is reproducible from its manifest without putting tens of megabytes of
+# ERCOT-derived load into history, where removing it would need a rewrite.
+#
+# data/frozen/ was previously NOT covered here while its siblings were, so a
+# single `git add -A` would have committed the 54 MB load artifact.
 data/raw/*
 data/shared/*
+data/frozen/*
 data/track_a/*
 data/track_b/*
 !data/**/.gitkeep

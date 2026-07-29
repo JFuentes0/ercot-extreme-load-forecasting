@@ -1,0 +1,120 @@
+# Track A — stage-4 exploratory run plan (TRACK-A-REAL-DATA-READINESS-001, WS7)
+#
+# ############################################################################
+# THESE RUNS ARE PREPARED ONLY. NONE HAS BEEN EXECUTED.
+#
+# Execution stage 4 is BLOCKED. Two independent gates must both open first:
+#   1. the censoring-treatment ruling must be ADOPTED by a decision-log entry
+#      (freeze 11.1; the draft at docs/track_a/CENSORING_TREATMENT_RULING_v1_DRAFT.md
+#      is a recommendation and is NOT adopted);
+#   2. execution stage 3 must pass (freeze 10), which has not occurred because
+#      the harmonized load target series is not yet importable.
+#
+# D-008 authorizes stage 3 only. Running any entry below before both gates open
+# would constitute held-out-event scoring without its committed stage gate.
+# ############################################################################
+
+plan_status: PREPARED_NOT_EXECUTED
+authorized_stage: 3          # stage 4 is NOT authorized
+blocked_by:
+  - censoring_treatment_ruling_not_adopted
+  - stage_3_not_yet_passed
+  - harmonized_load_artifact_not_imported
+
+# Stage 4 is exploratory. Freeze section 10 requires every stage-4 result to be
+# labelled exploratory in every table and figure.
+result_labelling: EXPLORATORY
+
+# --- Frozen controls inherited from EXPERIMENT_FREEZE_v1.md -----------------
+
+seed: 20260729               # freeze section 8, first of the three frozen seeds
+context_size: 64             # freeze section 4, headline
+horizon: 24                  # freeze section 6
+scale_floor: 1.0e-3          # freeze section 6, frozen constant
+buffer_days: 7               # freeze section 3, plus/minus 7 days
+issuance_local_time: "09:00" # freeze section 5 / D-007, on D-1
+issuance_calendar_zone: "America/Chicago"
+canonical_axis: "UTC"
+
+# Both arms must consume byte-identical saved context indices (freeze section 4
+# and the Track A rules). Selection happens once per episode, outside the model.
+shared_context_indices: true
+
+# --- The six planned runs ---------------------------------------------------
+#
+# Events are identified by event_id, verified present and load-eligible against
+# the imported controlling artifacts by
+# tests/track_a/test_event_eligibility.py::test_exploratory_events_exist_and_are_eligible.
+# These are IDENTIFIERS, not counts, and assert nothing about inventory size.
+# The fold count is derived at run time and never hard-coded (D-006, freeze 10.1).
+
+events:
+  - event_id: E08_20110202
+    onset_utc: "2011-02-02 04:00:00+00:00"
+    recovery_utc: "2011-02-05 22:00:00+00:00"
+    declared_event_hours: 91
+    verified_shed_hours: 9
+    note: >-
+      Censoring window W-2011-0202-v3. The window's quoted wording is
+      PI-supplied and was not independently read; see the censoring draft
+      section 1.3.
+
+  - event_id: E14_20210212
+    onset_utc: "2021-02-12 00:00:00+00:00"
+    recovery_utc: "2021-02-20 15:00:00+00:00"
+    declared_event_hours: 208
+    verified_shed_hours: 71
+    note: >-
+      February 2021. 71 of 208 hours (34%) are verified_shed lower-bound
+      observations. This event is the most censoring-affected in the record and
+      its treatment depends most heavily on the unadopted ruling. A wide
+      sensitivity envelope W-2021-0215-WIDE-v3 exists but is NOT_APPLIED.
+
+  - event_id: E21_20260125
+    onset_utc: "2026-01-25 03:00:00+00:00"
+    recovery_utc: "2026-01-28 08:00:00+00:00"
+    declared_event_hours: 78
+    verified_shed_hours: 0
+    note: >-
+      Firm-shed status NOT ESTABLISHED; all hours unresolved. The record notes
+      DOE FPA 202(c) supply-side orders, which are not evidence that shedding
+      occurred. Unresolved must not be defaulted in either direction.
+
+arms:
+  - name: CNP
+    aggregation: uniform_mean
+    module: ercot_forecasting.track_a.cnp
+  - name: AdaCNP
+    aggregation: target_conditioned_adaptive
+    module: ercot_forecasting.track_a.adacnp
+
+# 3 events x 2 arms x 1 seed = 6 planned runs.
+# The product is expressed here rather than enumerated so no run count is
+# duplicated as a literal in two places.
+planned_runs_expansion: events x arms x [seed]
+
+# --- Required per-run manifest fields --------------------------------------
+# Every executed run must emit these. Parameter counts are required by the PI
+# determination recorded in MODEL_MECHANICS_NOTE_v1.md section 7.3.
+
+run_manifest_fields:
+  - run_id
+  - event_id
+  - arm
+  - seed
+  - config_sha256
+  - input_artifact_sha256
+  - context_index_file_sha256
+  - trainable_parameter_count
+  - derived_fold_count
+  - censoring_treatment_applied      # must name the adopted ruling, or fail
+  - excluded_verified_shed_hours
+  - result_label                     # must be EXPLORATORY at stage 4
+
+# Scaffold baseline for the parameter-count field, measured at the synthetic
+# config. Real-data feature dimensionality will change the encoder input width,
+# so these are a reference point, not an expectation.
+scaffold_parameter_baseline:
+  CNP: 110512
+  AdaCNP: 123569
+  shared_backbone_identical: true
