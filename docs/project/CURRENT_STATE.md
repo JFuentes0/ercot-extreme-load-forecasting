@@ -42,6 +42,18 @@ and hash-verified by that task.
 | D-006 | `event_inventory_headline.csv` is the controlling event inventory — resolves IB-1 |
 | D-007 | UTC canonical axis; `America/Chicago` calendar; 09:00 CT D-1 issuance — resolves IB-3 |
 | D-008 | Track A real-data execution gate, **stage 3 only** — normal-period validation |
+| D-009 | Controlling Track A load artifact; bounded IB-2 disposition |
+
+## Track A load artifact (D-009)
+
+| Content | SHA-256 | Status under D-009 |
+| --- | --- | --- |
+| `ercot_hourly_load_harmonized.csv` | `272af17cd1b2df14b921756738c6625b22c7702a6d14139886c3ff32728689eb` | **CONTROLLING for Track A.** Adoption is content-specific, not filename-based: it applies only at this exact digest and an observed size of 54,688,032 bytes. |
+| `ercot_hourly_load_harmonized.csv` | `9f1817f78d1bb56ad3c5ea08b95b83e235616bd90ff85809182841f36f09bb35` | **EXCLUDED.** Documented stale pre-CC-8 delivery (F-06). Not importable, not substitutable, not an equivalent copy. Remains in place as historical provenance evidence. |
+| `ercot_hourly_load_harmonized.csv.gz` | `e4d300b36fdbd56a8e86e660b9770ad5888e348e62a2ae136ddb5ad7ff55579e` | **GOVERNANCE-QUARANTINED.** Remains in place; must not be modified, decompressed, parsed, opened for content comparison, moved, renamed, copied into the repository, or deleted. Metadata-only checks (`stat`, `file`, `sha256sum`) remain permitted. No inference is adopted about its decompressed contents. |
+
+The load artifact has **not** been imported. D-009 authorizes the verification and copy;
+it has not been performed.
 
 ## Track A experiment freeze
 
@@ -63,6 +75,18 @@ validation, and preparation of the stage-4 exploratory runs. See `docs/project/N
 Seven workstreams: packaging cleanup, minimal verified import, data validation, partition and
 issuance safeguards, stage-3 normal-period validation, a censoring-ruling **draft**, and
 preparation of six exploratory runs that must **not** be executed.
+
+**Next permitted execution step (D-009):** resume workstream 2 at the stopped load-artifact
+portion — verify the adopted clean content's complete SHA-256 and its 54,688,032-byte size
+*before* copying, copy only that exact content, verify the destination digest after copying,
+and then update `docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv` to record the complete digest and
+D-009 as the governing decision. Remaining minimal-import work proceeds only for artifacts
+independently identified, hash-verified, governed, and permitted by the existing task.
+
+**Stage 3 has not begun and may not begin** until every import, data-validation, partition,
+issuance-time, leakage, and acceptance prerequisite imposed by D-008, `NEXT_TASK.md`, and the
+experiment freeze has passed and been documented. D-008 remains the stage-3 authority; D-009
+does not authorize stage-3 execution.
 
 ## Still blocked
 
@@ -86,6 +110,13 @@ Resolved: **IB-6** (D-005), **IB-1** (D-006), **IB-3** (D-007).
 **IB-2, IB-4, IB-5, and IB-7 remain unresolved.** D-008 does not adjudicate them; the Track A
 minimal import set is scoped to avoid every artifact they touch. Avoidance by exclusion is
 not resolution, and they continue to gate any import beyond that minimal set.
+
+**IB-2 — bounded disposition under D-009.** IB-2 **remains open** as a provenance issue
+concerning the identity and history of the unexplained gzip content `e4d300b3…`. The
+underlying discrepancy is **not resolved**. It **no longer blocks the Track A stage-3 path**,
+because that content is explicitly excluded and governance-quarantined while the controlling
+load artifact is identified independently by its complete digest. IB-4, IB-5, and IB-7 are
+untouched by D-009 and continue to block any artifact they entangle.
 
 Still deferred, each requiring a separate bounded task:
 

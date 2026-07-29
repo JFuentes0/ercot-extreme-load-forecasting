@@ -238,3 +238,153 @@ Supporting note (context, not part of the ruling):
 - A `[build-system]` addition to `pyproject.toml` is authorized under
   TRACK-A-REAL-DATA-READINESS-001 workstream 1. It is packaging infrastructure
   only, carries no scientific effect, and does not widen the scope granted here.
+
+## D-009 — Controlling Track A load artifact and bounded IB-2 disposition
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Task: TRACK-A-REAL-DATA-READINESS-001
+
+Relates to:
+
+- `docs/audit/ARTIFACT_INVENTORY_001.md`, findings F-06, F-07, and IB-2;
+- decisions D-005 through D-008;
+- `docs/project/NEXT_TASK.md`, workstreams 2 through 5;
+- the read-only Track A Import Evidence Checkpoint dated 2026-07-29;
+- `docs/track_a/EXPERIMENT_FREEZE_v1.md` §§10, 11, 11.1.
+
+Decision:
+
+- **The clean harmonized ERCOT load artifact is adopted for Track A.** For Track A
+  only, `ercot_hourly_load_harmonized.csv` with SHA-256
+  `272af17cd1b2df14b921756738c6625b22c7702a6d14139886c3ff32728689eb` is adopted as
+  the controlling harmonized ERCOT load artifact.
+- **The adoption is content-specific, not filename-based.** It applies only to a
+  source file whose complete SHA-256 exactly matches the digest above and whose
+  observed size is 54,688,032 bytes. Any file with a different digest is not
+  adopted by this decision, regardless of its filename or location.
+- **The stale CSV content is explicitly excluded.**
+  `ercot_hourly_load_harmonized.csv` with SHA-256
+  `9f1817f78d1bb56ad3c5ea08b95b83e235616bd90ff85809182841f36f09bb35` is the
+  documented stale pre-CC-8 delivery identified by finding F-06, produced without
+  the `pre_apr2003_restated` column. It is not a controlling Track A artifact and
+  must not be imported, substituted for the adopted content, used for training or
+  validation, or treated as an equivalent copy. It remains in its existing location
+  as historical provenance evidence and must not be modified, moved, renamed,
+  copied into the repository, or deleted under this decision.
+- **The unexplained gzip content is governance-quarantined.**
+  `ercot_hourly_load_harmonized.csv.gz` with SHA-256
+  `e4d300b36fdbd56a8e86e660b9770ad5888e348e62a2ae136ddb5ad7ff55579e` remains
+  unexplained. It is excluded from all Track A import, interpretation, training,
+  validation, and evaluation. It must remain in its current location and must not
+  be modified, decompressed, parsed, opened for content comparison, moved, renamed,
+  copied into the repository, or deleted.
+- **Metadata-only provenance checks remain permitted** — `stat`, `file`,
+  `sha256sum`, and equivalents — when needed to confirm the quarantined file's
+  identity and unchanged state, and only where they do not inspect or transform its
+  contents.
+- **No inference is adopted** concerning the gzip file's decompressed contents or
+  its relationship to either CSV version.
+- **IB-2 receives a bounded Track A disposition.** This decision resolves the effect
+  of IB-2 on selection of the controlling Track A load artifact by adopting the
+  `272af17c…` content, excluding the `9f1817f7…` content, and
+  governance-quarantining the `e4d300b3…` content. **This is not a finding that the
+  unexplained gzip discrepancy has been resolved.** IB-2 remains open as a
+  provenance issue concerning the identity and history of the `e4d300b3…` content.
+  It no longer blocks the Track A stage-3 path, because that content is explicitly
+  excluded and quarantined while the controlling artifact is identified
+  independently by the complete digest stated here.
+
+Evidentiary basis:
+
+- `ARTIFACT_INVENTORY_001.md` records the clean CSV at 54,688,032 bytes, matching
+  prior recorded hash evidence across six independent sources, present in multiple
+  source locations, and carrying no direct blocking flag.
+- Finding F-06 identifies `9f1817f7…` as stale pre-CC-8 content produced without the
+  `pre_apr2003_restated` column.
+- Finding F-07 establishes that `e4d300b3…` does not match the recorded gzip digest,
+  remains unexplained by the available corpus, and was not decompressed.
+- The read-only Track A Import Evidence Checkpoint reports that the relevant source
+  hashes were independently re-verified, that no harmonized load artifact had been
+  copied into the repository, and that the repository remained byte-for-byte
+  unchanged during that checkpoint.
+- D-008 requires exact artifact identification before copying, and requires the task
+  to stop rather than import an artifact whose governing status remains unresolved.
+
+This evidence establishes the identity and provenance basis for the bounded Track A
+selection made here. It does not establish the contents of the quarantined gzip file
+and does not authorize an investigation of those contents.
+
+Authority and approval boundary:
+
+- Made by Jonathan Fuentes under his present project decision authority.
+- **No approval by John Brewer is claimed or implied.**
+- Not mentor ratification; does not amend any historical mentor ruling, DR-1, or the
+  historical Phase 1 record.
+- Not institutional approval, and not the formal Data Readiness Decision.
+- Any submission or action independently requiring mentor or institutional approval
+  remains subject to that separate requirement. Project authority, mentor approval,
+  and institutional approval remain distinct.
+
+Execution authorized after adoption:
+
+- Resumption of TRACK-A-REAL-DATA-READINESS-001 at the stopped load-artifact portion
+  of workstream 2, and nothing else.
+- Reading and hashing a source copy of the adopted clean content before copying,
+  verifying both the complete digest and the observed 54,688,032-byte size.
+- Copying only content whose complete SHA-256 exactly equals
+  `272af17cd1b2df14b921756738c6625b22c7702a6d14139886c3ff32728689eb`.
+- Computing and verifying the destination SHA-256 after copying.
+- Subsequently adding or updating the corresponding row in
+  `docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv` so it records the complete digest,
+  source and destination paths, independently computed source and destination
+  hashes, their equality, the artifact purpose, governing status, **D-009** as the
+  governing decision, and the required IB-2, IB-4, IB-5, and IB-7 blocker check.
+- Completion of remaining minimal-import work only for artifacts independently
+  identified, hash-verified, governed, and permitted by the existing task.
+- Progression to workstreams 3 and 4 only after the complete minimal import
+  satisfies all manifest, blocker-check, and acceptance requirements in
+  `NEXT_TASK.md`.
+
+**D-009 does not itself authorize immediate stage-3 execution.** It removes the
+bounded load-artifact selection blocker and authorizes resumption of workstream 2.
+D-008 remains the stage-3 authority. Stage 3 may begin only after every import,
+data-validation, partition, issuance-time, leakage, and acceptance prerequisite
+imposed by D-008, `NEXT_TASK.md`, and the experiment freeze has been satisfied and
+documented. Any eventual stage-3 execution remains restricted to normal, non-event
+periods; every event-period hour must be excluded from stage-3 training, validation,
+and scoring, and that exclusion must be enforced and demonstrated **by test**, not
+assumed or established by manual inspection.
+
+Not authorized by this decision:
+
+- importing, copying, decompressing, parsing, or inspecting the contents of the
+  `e4d300b3…` gzip artifact;
+- importing or using the stale `9f1817f7…` CSV content;
+- selecting any artifact based only on its filename;
+- treating the current uncommitted import manifest as the authority for this
+  decision;
+- import of any artifact entangled with IB-4, IB-5, or IB-7 without a separate
+  adopted decision;
+- approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` as a whole;
+- any change to the frozen Track A experimental design;
+- adoption or application of the censoring-treatment ruling;
+- freeze execution stages 4, 5, or 6, or execution of any prepared stage-4
+  configuration;
+- held-out-event prediction;
+- held-out-event performance inspection;
+- generation or inspection of any metric, table, figure, log, or artifact reporting
+  event-period model performance;
+- use of any event-period hour in stage-3 training, validation, or scoring;
+- any Track B change;
+- package installation;
+- modification of any source artifact outside the repository;
+- a repository commit without separate PI approval.
+
+Stage 4 remains blocked until stage 3 passes **and** the censoring-treatment ruling
+required by freeze §11.1 is separately adopted through a recorded PI decision.
+Stages 5 and 6 remain blocked by their sequential gates. Track B remains unaffected:
+its frozen design, hypotheses, feature rules, architecture prohibition, and
+historical record are unchanged.
