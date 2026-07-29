@@ -1,0 +1,51 @@
+# Track A — synthetic scaffold configuration (TRACK-A-SCAFFOLD-001)
+#
+# Synthetic-only. No real ERCOT, EIA, weather, event, or censoring artifact is
+# referenced here. Values marked FROZEN are inherited from
+# docs/track_a/EXPERIMENT_FREEZE_v1.md and may not be tuned.
+
+# --- Frozen by EXPERIMENT_FREEZE_v1.md -------------------------------------
+
+# Freeze section 6: 24 Gaussian means and 24 positive Gaussian scales.
+horizon: 24
+
+# Freeze section 6: scale is softplus plus a small numerical floor. The floor is
+# a frozen constant recorded in configuration, not tuned.
+scale_floor: 1.0e-3
+
+# Freeze section 4: headline context size 64, sensitivity context size 32.
+context_size_headline: 64
+context_size_sensitivity: 32
+
+# Freeze section 8: both arms use the same three seeds in the same order.
+seeds:
+  - 20260729
+  - 20260730
+  - 20260731
+
+# --- Engineering defaults ---------------------------------------------------
+# Not specified by either reference paper. See MODEL_MECHANICS_NOTE_v1.md
+# section 9. Shared identically by both arms per freeze section 2.
+
+representation_dim: 128
+embedding_dim: 64
+encoder_hidden: 128
+decoder_hidden: 128
+scoring_hidden: 64
+
+# AdaCNP temperature. The paper defines tau > 0 but states no value.
+temperature: 1.0
+
+optimizer:
+  name: adam
+  learning_rate: 1.0e-3
+
+# --- Synthetic fixture shape ------------------------------------------------
+# These describe generated fixtures only. They are not event counts, fold
+# counts, or inventory sizes (decision D-006, freeze section 10.1).
+
+synthetic:
+  pool_days: 256
+  feature_dim: 8
+  smoke_steps: 50
+  smoke_batch: 4
