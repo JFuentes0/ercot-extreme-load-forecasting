@@ -171,3 +171,70 @@ Relationship to the historical record:
 - This ruling is made on PI authority for the current project direction. It does
   not amend DR-1, does not constitute the Data Readiness Decision, and makes no
   claim of mentor ratification.
+
+## D-008 — Track A real-data execution gate, stage 3 only
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Task: TRACK-A-REAL-DATA-READINESS-001
+
+Relates to: `docs/track_a/EXPERIMENT_FREEZE_v1.md` §10 (execution stages), §11
+(open items gating the real-data stages), §11.1 (censoring treatment)
+
+Decision:
+
+- **Verified real data may be used for freeze execution stage 3.** The real-data
+  execution gate, which freeze §11 recorded as "Not yet requested or approved",
+  is granted for stage 3 and for no other stage.
+- **Stage 3 is restricted to non-event periods.** It is normal-period validation
+  only.
+- **Every event-period hour must be excluded from stage-3 training, validation,
+  and scoring.** This exclusion is what permits stage 3 to proceed before the
+  censoring-treatment ruling exists, per freeze §11.1, which requires that
+  ruling only from stage 4 onward. Exclusion must be enforced and demonstrated
+  by test, not by inspection.
+- **This does not authorize exploratory or full held-out-event scoring.** No
+  held-out-event prediction and no held-out-event performance inspection is
+  authorized by this decision.
+- **Stage 4 remains blocked** pending adoption of the censoring-treatment ruling
+  required by freeze §11.1. A draft of that ruling may be prepared under
+  TRACK-A-REAL-DATA-READINESS-001; a draft is not an adoption, and adoption
+  requires a separate decision-log entry. Stages 5 and 6 likewise remain blocked.
+- **Imports are limited to the artifacts approved through
+  TRACK-A-REAL-DATA-READINESS-001**, each identified by exact source path,
+  source SHA-256, destination path, destination SHA-256, purpose, governing
+  status, and governing decision before it is copied. Identification precedes
+  copying; a filename is not an identification.
+  `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` remains non-authoritative and is
+  not approved as a whole by this decision.
+- **IB-2, IB-4, IB-5, and IB-7 are avoided by exclusion and remain unresolved.**
+  Freeze §11 lists them as gating stage 3. This decision does not adjudicate any
+  of them. The minimal Track A import set is scoped so that no artifact touched
+  by those findings is imported. If a required artifact proves entangled with
+  one of them, the task must stop and report rather than resolve it.
+- **No mentor approval is claimed.** This decision is made on Jonathan Fuentes's
+  current project decision authority. It does not amend DR-1, does not
+  constitute the Data Readiness Decision, and makes no claim of mentor
+  ratification. Any institutional submission independently requiring mentor
+  sign-off requires separate confirmation.
+- **Track B is unaffected.** Its frozen design, hypotheses, feature rules,
+  architecture prohibition, and history are unchanged, and no Track A result may
+  revise them.
+
+Not authorized by this decision:
+
+- held-out-event prediction;
+- held-out-event performance inspection;
+- freeze execution stages 4, 5, and 6;
+- adoption of the censoring-treatment ruling;
+- approval of the proposed import manifest as a whole;
+- resolution of IB-2, IB-4, IB-5, or IB-7;
+- any change to a frozen item.
+
+Supporting note (context, not part of the ruling):
+
+- A `[build-system]` addition to `pyproject.toml` is authorized under
+  TRACK-A-REAL-DATA-READINESS-001 workstream 1. It is packaging infrastructure
+  only, carries no scientific effect, and does not widen the scope granted here.

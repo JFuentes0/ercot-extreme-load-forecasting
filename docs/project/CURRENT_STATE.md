@@ -23,10 +23,16 @@ when a task explicitly states `TRACK=B`.
 
 ## Current stage
 
-Governance complete for the neural-process extension. Track A experiment freeze drafted.
-Transitioning from audit to implementation.
+Synthetic scaffold complete and committed. Track A experiment freeze committed. Preparing the
+first verified real-data import and normal-period validation.
 
-No artifact has been imported. No model code exists yet.
+The Track A synthetic scaffold (`TRACK-A-SCAFFOLD-001`) is implemented and committed: nine
+modules, 21 passing tests, CPU-only, synthetic fixtures only. Trainable parameter counts are
+CNP 110,512 and AdaCNP 123,569, with an identical shared encoder/decoder backbone.
+
+**No artifact has been imported yet.** Real-data import is authorized in principle by D-008
+but occurs only through `TRACK-A-REAL-DATA-READINESS-001`, and only for artifacts identified
+and hash-verified by that task.
 
 ## Governance decisions in force
 
@@ -35,6 +41,7 @@ No artifact has been imported. No model code exists yet.
 | D-005 | Neural-process extension boundary — resolves IB-6 |
 | D-006 | `event_inventory_headline.csv` is the controlling event inventory — resolves IB-1 |
 | D-007 | UTC canonical axis; `America/Chicago` calendar; 09:00 CT D-1 issuance — resolves IB-3 |
+| D-008 | Track A real-data execution gate, **stage 3 only** — normal-period validation |
 
 ## Track A experiment freeze
 
@@ -44,26 +51,41 @@ Freezes the CNP/AdaCNP comparison, the controlled-comparison requirement, episod
 context definitions, Gaussian output, primary and calibration metrics, three seeds, nine
 required validations, and six sequential execution stages.
 
-Execution stages **1 and 2 (synthetic) are authorized**. Stages 3–6 (real data) are not.
+Execution stages **1 and 2 (synthetic) are complete**. Stage **3 (normal-period validation)
+is authorized** by D-008, restricted to non-event periods. Stages **4, 5, and 6 remain
+blocked**.
 
 ## Next authorized implementation task
 
-`TRACK-A-SCAFFOLD-001` — Track A synthetic scaffold. See `docs/project/NEXT_TASK.md`.
+`TRACK-A-REAL-DATA-READINESS-001` — verified real-data pipeline, stage-3 normal-period
+validation, and preparation of the stage-4 exploratory runs. See `docs/project/NEXT_TASK.md`.
 
-Synthetic fixtures only. Nine modules, eight tests, CPU. No real artifact may be loaded.
+Seven workstreams: packaging cleanup, minimal verified import, data validation, partition and
+issuance safeguards, stage-3 normal-period validation, a censoring-ruling **draft**, and
+preparation of six exploratory runs that must **not** be executed.
 
 ## Still blocked
 
-- real-data import, and approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv`;
-- held-out-event model predictions;
-- held-out-event performance inspection;
-- freeze execution stages 3 through 6;
+- **held-out-event model predictions;**
+- **held-out-event performance inspection;**
+- freeze execution stages 4, 5, and 6;
+- adoption of the censoring-treatment ruling (freeze §11.1) — gates stage 4;
+- approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` as a whole;
+- import of any artifact not identified and hash-verified under
+  `TRACK-A-REAL-DATA-READINESS-001`;
 - changes to the frozen event inventory;
 - Track B design amendments.
+
+Stage 3 may proceed only with every event-period hour excluded from training, validation, and
+scoring (D-008, freeze §11.1).
 
 ## Import blockers
 
 Resolved: **IB-6** (D-005), **IB-1** (D-006), **IB-3** (D-007).
+
+**IB-2, IB-4, IB-5, and IB-7 remain unresolved.** D-008 does not adjudicate them; the Track A
+minimal import set is scoped to avoid every artifact they touch. Avoidance by exclusion is
+not resolution, and they continue to gate any import beyond that minimal set.
 
 Still deferred, each requiring a separate bounded task:
 
