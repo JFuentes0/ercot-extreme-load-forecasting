@@ -10,7 +10,7 @@ Track A is a **separately authorized extension**, constituted under
 
 Standard CNP and AdaCNP are authorized within Track A only, as a bounded exception to
 historical ruling R-5. Authorization is by Jonathan Fuentes as project decision authority.
-No mentor approval of the extension is claimed.
+No prior approval by John Brewer is claimed.
 
 ## Secondary frozen track
 
@@ -23,44 +23,58 @@ when a task explicitly states `TRACK=B`.
 
 ## Current stage
 
-Dual-track repository initialization.
+Governance complete for the neural-process extension. Track A experiment freeze drafted.
+Transitioning from audit to implementation.
 
-Artifact inventory complete (`docs/audit/ARTIFACT_INVENTORY_001.md`). Governance extension
-boundary established (D-005). No artifact has been imported.
+No artifact has been imported. No model code exists yet.
 
-## Authorized work
+## Governance decisions in force
 
-- import and hash existing project artifacts, once the outstanding import blockers are
-  resolved;
-- establish shared ERCOT data and partition interfaces;
-- freeze the Track A extension protocol;
-- preserve the Track B frozen protocol;
-- create deterministic tests.
+| ID | Decision |
+| --- | --- |
+| D-005 | Neural-process extension boundary — resolves IB-6 |
+| D-006 | `event_inventory_headline.csv` is the controlling event inventory — resolves IB-1 |
+| D-007 | UTC canonical axis; `America/Chicago` calendar; 09:00 CT D-1 issuance — resolves IB-3 |
 
-## Not yet authorized
+## Track A experiment freeze
 
+`docs/track_a/EXPERIMENT_FREEZE_v1.md` — **drafted, frozen on commit.**
+
+Freezes the CNP/AdaCNP comparison, the controlled-comparison requirement, episode and
+context definitions, Gaussian output, primary and calibration metrics, three seeds, nine
+required validations, and six sequential execution stages.
+
+Execution stages **1 and 2 (synthetic) are authorized**. Stages 3–6 (real data) are not.
+
+## Next authorized implementation task
+
+`TRACK-A-SCAFFOLD-001` — Track A synthetic scaffold. See `docs/project/NEXT_TASK.md`.
+
+Synthetic fixtures only. Nine modules, eight tests, CPU. No real artifact may be loaded.
+
+## Still blocked
+
+- real-data import, and approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv`;
 - held-out-event model predictions;
 - held-out-event performance inspection;
-- model or partition implementation;
-- model training;
+- freeze execution stages 3 through 6;
 - changes to the frozen event inventory;
-- Track B design amendments;
-- artifact import, and approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv`.
+- Track B design amendments.
 
-## Open import blockers
+## Import blockers
 
-Resolved: **IB-6** (R-5 versus Track A architecture conflict), by decision D-005.
+Resolved: **IB-6** (D-005), **IB-1** (D-006), **IB-3** (D-007).
 
-Still open, each requiring a separate bounded task:
+Still deferred, each requiring a separate bounded task:
 
 | ID | Blocker |
 | --- | --- |
-| IB-1 | Authoritative event inventory not uniquely ratified |
 | IB-2 | Unexplained gzip hash mismatch (`e4d300b3…`) |
-| IB-3 | Timezone (UTC join axis) and issuance-cutoff conventions unratified |
 | IB-4 | Controlling-versus-descriptive status of `AWAITING RATIFICATION` artifacts |
 | IB-5 | Unreconciled manifest rows and `unknown` artifacts |
 | IB-7 | Four same-name / different-content pairs |
+| — | Approval of the proposed import manifest |
+| — | Censoring treatment of the target series (freeze §11.1) — gates real-data stages |
 
 ## Current task
 
