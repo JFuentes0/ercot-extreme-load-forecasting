@@ -1,3 +1,12 @@
+# Packaging infrastructure only (TRACK-A-REAL-DATA-READINESS-001 workstream 1,
+# decision D-008). setuptools is already present in the existing environment;
+# nothing is installed or downloaded to obtain it. Builds must use
+# --no-build-isolation so the resident setuptools is used rather than a fetched
+# copy. This section carries no scientific effect and widens no execution scope.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ercot-extreme-load-forecasting"
 version = "0.1.0"
