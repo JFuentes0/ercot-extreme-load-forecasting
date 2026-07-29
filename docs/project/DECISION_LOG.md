@@ -29,3 +29,14 @@ Repository setup and protocol preparation are authorized.
 
 Held-out-event prediction, event-performance inspection, and model training are
 not yet authorized.
+
+## D-004 — Deferred GPU environment risk
+
+Status: Accepted, deferred
+
+CUDA-built PyTorch is installed, but no GPU is currently visible to WSL.
+
+GPU configuration is deferred until substantial Track A training.
+
+This does not block setup, artifact inventory, hashing, partition work,
+deterministic tests, context construction, or tiny CPU smoke tests.

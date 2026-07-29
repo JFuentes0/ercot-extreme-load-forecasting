@@ -23,5 +23,8 @@ Dual-track repository initialization.
 - changes to the frozen event inventory;
 - Track B design amendments.
 
-## Next task
-Create and validate the repository structure and governing documents. No model training.
+## Current task
+
+The authoritative task definition is:
+
+`docs/project/NEXT_TASK.md`

@@ -22,6 +22,11 @@ data/track_b/*
 
 # Training outputs
 runs/*
+!runs/track_a/
+!runs/track_b/
+runs/track_a/*
+runs/track_b/*
+!runs/**/.gitkeep
 mlruns/*
 *.pt
 *.pth
