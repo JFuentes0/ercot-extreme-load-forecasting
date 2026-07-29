@@ -18,8 +18,41 @@ plan_status: PREPARED_NOT_EXECUTED
 authorized_stage: 3          # stage 4 is NOT authorized
 blocked_by:
   - censoring_treatment_ruling_not_adopted
-  - stage_3_not_yet_passed
-  - harmonized_load_artifact_not_imported
+  # Cleared 2026-07-29: the D-009 load artifact is imported and stage 3 has run
+  # for both arms. The censoring ruling remains the sole outstanding gate.
+
+# ############################################################################
+# DEVIATION FROM THE COMMITTED CONTRACT — REQUIRES A DECISION-LOG ENTRY
+#
+# docs/project/NEXT_TASK.md (committed at bdc3593) names E08, E14 and E21 as
+# the three exploratory events. This file now specifies E08, E14 and **E18**.
+#
+# Reason: the OE-417 evidence sweep of 2026-07-29 established that E21's
+# censoring status cannot be determined from ANY reachable source. EIA
+# discontinued Electric Power Monthly Appendix B with its June 2024 issue, the
+# ORNL OE-417 mirror covers 2023 only, and the Wayback mirror of DOE's annual
+# XLS downloads stops at 2023. E19, E20 and E21 are all in that gap. Scoring a
+# likelihood against E21 would produce a number whose estimand is undefined.
+#
+# Replacement chosen as a like-for-like match on severity, NOT on cleanliness:
+#   E21 peak -5.67 C, margin 7.02, 78 h   (unresolvable)
+#   E18 peak -5.98 C, margin 7.33, 83 h   (resolved: 2 documented public appeals)
+# E16 (Elliott) has the strongest affirmative no-shed evidence in the record and
+# was DELIBERATELY REJECTED: substituting the cleanest available event would
+# bias the exploratory run toward a favourable result. E18 retains a censoring
+# challenge, so the swap removes an unknowable, not an inconvenience.
+#
+# THIS SUBSTITUTION IS NOT SELF-AUTHORIZING. The committed contract says of the
+# trio "do not substitute another event". That clause addresses absent or
+# ineligible events, and E21 is neither -- it is load-eligible and present --
+# so this is a different ground. It is recorded here rather than applied
+# quietly, and requires a PI decision before any stage-4 run uses it.
+#
+# E21 REMAINS LOAD-ELIGIBLE and enters the full LOEO at stages 5-6. This swap
+# defers its censoring problem; it does not solve it.
+# ############################################################################
+substitution_status: PROPOSED_PENDING_PI_DECISION
+substitution_supersedes: "NEXT_TASK.md exploratory trio E08 / E14 / E21"
 
 # Stage 4 is exploratory. Freeze section 10 requires every stage-4 result to be
 # labelled exploratory in every table and figure.
@@ -70,15 +103,38 @@ events:
       its treatment depends most heavily on the unadopted ruling. A wide
       sensitivity envelope W-2021-0215-WIDE-v3 exists but is NOT_APPLIED.
 
-  - event_id: E21_20260125
-    onset_utc: "2026-01-25 03:00:00+00:00"
-    recovery_utc: "2026-01-28 08:00:00+00:00"
-    declared_event_hours: 78
+  - event_id: E18_20240114
+    onset_utc: "2024-01-14 21:00:00+00:00"
+    recovery_utc: "2024-01-18 07:00:00+00:00"
+    declared_event_hours: 83
     verified_shed_hours: 0
+    censoring_evidence: >-
+      Winter Storm Heather. RESOLVED but not clean. EIA Electric Power Monthly
+      March-2024 Appendix B (Source: Form OE-417) records TWO ERCOT public-appeal
+      filings inside the window: 2024-01-14 17:00 to 2024-01-15 10:00 and
+      2024-01-16 06:00 to 09:00, both under "Public appeal to reduce the use of
+      electricity for purposes of maintaining the continuity of the Bulk Electric
+      System". Demand loss and customers affected are both reported "Unknown".
+      No firm-load-shed filing and no >50,000-customer loss appears for TRE in
+      this window.
     note: >-
-      Firm-shed status NOT ESTABLISHED; all hours unresolved. The record notes
-      DOE FPA 202(c) supply-side orders, which are not evidence that shedding
-      occurred. Unresolved must not be defaulted in either direction.
+      A public appeal is NOT directed firm load shed, so this event carries no
+      verified_shed hours and CC-45 is not engaged. It does, however, evidence
+      voluntary demand reduction, which depresses served load below counterfactual
+      demand by a mechanism the three-state model does not represent. That is a
+      live interpretive issue for the censoring ruling, not a reason to exclude
+      the event.
+
+  # E21_20260125 REMOVED FROM THE EXPLORATORY TRIO — see the deviation block at
+  # the head of this file. It remains load-eligible and enters the full LOEO at
+  # stages 5-6, where its unresolvable censoring status will still require a
+  # ruling. Retained here as a record of what was displaced and why:
+  #   onset_utc 2026-01-25 03:00:00+00:00, recovery_utc 2026-01-28 08:00:00+00:00
+  #   declared_event_hours 78, verified_shed_hours 0
+  #   Firm-shed status NOT ESTABLISHED and NOT ESTABLISHABLE from any reachable
+  #   source. DOE FPA 202(c) Orders 202-26-01A and 202-26-04 are supply-side
+  #   authorities and are not evidence that shedding occurred. Unresolved must
+  #   not be defaulted in either direction.
 
 arms:
   - name: CNP
