@@ -1,8 +1,57 @@
 # Next Task
 
+> ## ⚠ THIS CONTRACT IS COMPLETE AND SUPERSEDED — DO NOT EXECUTE IT
+>
+> `TRACK-A-REAL-DATA-READINESS-001` finished on 2026-07-29. All seven workstreams are
+> done, and the stage-4 runs it prepared have since been **executed** under D-011.
+> Reading it as a live contract would re-run completed work and, worse, re-impose
+> prohibitions that later decisions lifted.
+>
+> **For live status, read `docs/project/CURRENT_STATE.md`.** The text below is retained
+> as the historical record of what was contracted.
+>
+> ### What has changed since this contract was written
+>
+> | Then | Now |
+> | --- | --- |
+> | Censoring ruling: **draft only**, must not be adopted | **Adopted** (D-010) |
+> | Exploratory trio: E08 / E14 / E21, runs prepared but **not executed** | Trio confirmed and **executed** (D-011); the proposed E18 substitution was declined |
+> | Stage-4 execution: **blocked** | **Granted** for stage 4 only (D-011) |
+> | Weather input: deferred, no feature table | Regional temperature index **imported and used** (D-012) |
+> | Context construction: nearest-neighbour only | Both nearest and paper-faithful sampling (D-013) |
+> | Training length: fixed 300 steps | Chosen on inner validation (D-014) |
+> | "Nothing committed until PI approval" | Committed on PI instruction — `0dded2c`, `e5ddfa2`, `575b4dc` |
+>
+> ### The next task is not yet written
+>
+> Stage 5 (full leave-one-event-out sweep) is **blocked**, and its blockers are
+> decisions rather than implementation:
+>
+> 1. **An execution-gate decision extending D-011**, which grants stage 4 only.
+> 2. **The inferential procedure the freeze never specified** — unit of analysis,
+>    fold aggregation, variance estimation, and the criterion for judging a
+>    difference real. This must be settled *first*: it determines what the sweep
+>    records, and deciding it afterwards risks a re-run.
+>
+> Three items that a stage-5 task definition must settle, identified during the
+> stage-4 pass:
+>
+> - **Scale.** The full factorial is 17 folds × 2 arms × 2 feature sets × 2 context
+>   conditions × 3 seeds ≈ **408 runs** (~6 h at the observed ~50 s/run); at ten
+>   seeds ≈ **1,360 runs** (~19 h). Decide whether stage 5 runs the whole factorial
+>   or designates one primary cell with the rest as predeclared sensitivities.
+> - **Seed count.** `POWER_ANALYSIS_v1.md` finds initialisation noise dominates and
+>   that more seeds is the cheapest improvement available — but freeze §8 fixes
+>   three seeds, so raising it **amends a frozen item** and needs its own decision.
+> - **E05 under the temperature feature set** drops from 3 held-out days to 1
+>   (D-012 discloses this). Either a disclosure rule or a ruling on whether a
+>   single-day fold is scoreable at all.
+
+---
+
 ## Task ID
 
-TRACK-A-REAL-DATA-READINESS-001
+TRACK-A-REAL-DATA-READINESS-001 — **COMPLETE, superseded (see above)**
 
 ## Title
 
