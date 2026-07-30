@@ -1,0 +1,14 @@
+\begin{thebibliography}{1}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hu et~al.(2026)Hu, Ma, Wu, and Hou]{hu2026resilient}
+Chenxi Hu, Yue Ma, Yifan Wu, and Yunhe Hou.
+\newblock Resilient load forecasting under climate change: Adaptive conditional
+  neural processes for few-shot extreme load forecasting, 2026.
+\newblock URL \url{https://arxiv.org/abs/2602.04609}.
+
+\end{thebibliography}

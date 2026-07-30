@@ -871,3 +871,78 @@ with the pre-committed version primary. The pre-registration survives either way
 
 Not authorized by this decision: any change to the freeze, the censoring ruling, the seed
 count, or the stage gates.
+
+## D-017 — Ratification of the stage-5 analysis plan
+
+Status: **AWAITING PI SIGNATURE** — drafted 2026-07-30, not yet in force
+
+Decision authority: Jonathan Fuentes Rosales
+
+Relates to: D-016, which adopted `docs/track_a/ANALYSIS_PLAN_v1.md` and marked it *pending
+PI ratification*; `docs/track_a/STAGE5_RESULTS_v1.md`; `docs/track_a/FINDINGS_v1.md`.
+
+### What is being ratified, and what is not
+
+D-016 was authored on PI instruction ahead of an unattended overnight run, with its three
+substantive choices — primary cell, sidedness, secondary-metric scope — confirmed by the PI
+in advance. It was committed at `11d3613`, **before any stage-5 run executed**. The plan
+reserved formal ratification for review after the fact.
+
+**This entry ratifies the plan as it was pre-committed. It does not, and cannot, alter it.**
+The distinction matters: ratifying a pre-registration after seeing its result is only
+meaningful if the ratification changes nothing. Every substantive element — the primary
+endpoint, the cell, the test, the significance level, the robustness checks and the decision
+rule including its null branch — is already fixed in the commit that predates the data.
+Signing below confirms that those were the PI's choices; it does not re-open them.
+
+### The result the plan produced
+
+Applying the rule as written: **AdaCNP advantage detected on held-out ERCOT extreme events.**
+Mean paired difference $+0.4593$, 95% CI $[+0.1075, +0.8111]$, two-sided paired *t*
+$p = 0.0137$, Wilcoxon $p = 0.0202$ (agreeing, so the inconclusive branch did not fire),
+$n = 17$ events, minimum detectable effect $0.4953$.
+
+### Confirmations sought
+
+By signing, the PI confirms:
+
+1. **The primary cell** was `temperature`/`sampled`, chosen for fidelity to Hu et al. and
+   **not** for observed effect size — `temperature`/`nearest` had shown a marginally larger
+   exploratory difference and was deliberately not chosen.
+2. **The test** was two-sided at $\alpha = 0.05$, on per-event paired differences with seeds
+   averaged.
+3. **All eight** freeze §7 secondary metrics were computed and are reported descriptively.
+4. **The three qualifications** are reported alongside the result and not subordinated to it:
+   the effect lies just below the MDE (~77% power at the realised size); the advantage appears
+   only in the pre-registered cell; and the design cannot resolve the source paper's effect
+   size.
+
+### If the PI would have chosen differently
+
+The plan provides for this. Any element the PI would have specified otherwise is to be
+reported **as an additional, clearly-labelled post-hoc variant**, with the pre-committed
+version remaining primary. Record any such disagreement here before signing:
+
+> *Disagreements recorded:* ______________________________________________
+>
+> *(write "none" if the plan as committed reflects your intent)*
+
+### Deviations register
+
+The plan's deviations register (`ANALYSIS_PLAN_v1.md` §8) carries **one** entry, recorded
+before the result was reported:
+
+| Date | Deviation | Reason |
+| --- | --- | --- |
+| 2026-07-30 | The minimum detectable effect was initially computed as 2.36 by a routine that mishandled `scipy.stats.nct.cdf` returning NaN at large non-centrality. Corrected to 0.4953. | Implementation defect, not a change of method. The specified *procedure* — MDE at 80% power from observed spread — is unchanged; only its computation was repaired. Caught before any result was reported, verified against Monte Carlo, and covered by regression tests. Two independent implementations now agree to 0.001. |
+
+No other departure from the plan occurred. The sweep completed 408/408 with an empty skip
+register.
+
+---
+
+**Signature:** ____________________________  **Date:** ______________
+
+*Jonathan Fuentes Rosales, project decision authority*
+
+*No approval by John Brewer is claimed or implied by this entry.*

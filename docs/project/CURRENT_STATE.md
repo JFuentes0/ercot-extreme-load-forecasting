@@ -85,6 +85,7 @@ expectation from the load axis.
 | D-014 | Stopping rule chosen on inner validation, never on the held-out event |
 | D-015 | Stage-5 execution gate — full leave-one-event-out sweep |
 | D-016 | Stage-5 analysis plan (pre-registration), **pending PI ratification** |
+| D-017 | Ratification of D-016 — **drafted, awaiting PI signature** |
 
 ## Track A load artifact (D-009)
 
