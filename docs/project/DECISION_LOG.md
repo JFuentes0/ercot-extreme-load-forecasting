@@ -764,3 +764,110 @@ defect in it — no leakage-free alternative selects on the extreme regime.
 
 Not authorized: any stopping rule that inspects held-out-event performance; any change to the
 frozen seeds or stage gates.
+
+## D-015 — Stage-5 execution gate
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Relates to: `EXPERIMENT_FREEZE_v1.md` §10 (execution stages); D-011, which granted the
+real-data execution gate for stage 4 only; `docs/track_a/ANALYSIS_PLAN_v1.md`;
+`docs/track_a/POWER_ANALYSIS_v1.md`.
+
+Decision:
+
+- **The real-data execution gate is extended to freeze execution stage 5** — the full
+  leave-one-event-out sweep over every load-eligible event. D-011's stage-4-only
+  restriction is superseded to this extent and no further.
+- **The sweep covers three frozen seeds**, so it satisfies the content of freeze stage 6
+  as well. Freeze §10 gates stage 6 on "stage 5 passes **and** time permits"; running
+  both in one pass is within that, and no separate stage-6 execution is authorized.
+- **Scope**: all derived load-eligible folds × both arms × both feature sets (D-012) ×
+  both context conditions (D-013) × the three frozen seeds. The fold count is derived at
+  run time and never written as a literal (D-006, freeze §10.1).
+- **Held-out-event prediction and performance inspection are authorized** for every
+  load-eligible event, under the D-010 censoring treatment and the D-014 stopping rule.
+- **The result is confirmatory only under D-016.** Any analysis not specified by the
+  pre-registered plan is exploratory, and must be labelled so.
+
+Conditions of execution, adopted because the sweep runs unattended:
+
+- **Resumable.** Any run whose manifest already exists is skipped, so an interruption
+  banks completed work rather than discarding it.
+- **Fail-soft per fold.** A fold that cannot be built is logged to a skip register and the
+  sweep continues. The register is reported alongside the results; a non-empty register
+  must appear in any write-up.
+- **Refuse rather than guess.** Anything not settled in advance stops that fold and is
+  logged. No scientific choice is made without the PI while the PI is unavailable.
+- **Serial, single process**, deliberately: available memory makes parallel sharding an
+  out-of-memory risk part-way through, and reliability outweighs speed when nobody is
+  watching.
+
+Not authorized by this decision:
+
+- any seed beyond the three frozen in freeze §8 — raising the count would amend a frozen
+  item and needs its own decision;
+- any change to the censoring ruling, the event inventory, the analysis plan, or any
+  frozen item;
+- resolution of IB-2, IB-4, IB-5, or IB-7;
+- any Track B change.
+
+Authority: made by Jonathan Fuentes under his present project decision authority. **No
+approval by John Brewer is claimed or implied.**
+
+## D-016 — Stage-5 analysis plan (pre-registration)
+
+Status: Adopted — **pending PI ratification**
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Instrument: `docs/track_a/ANALYSIS_PLAN_v1.md`, with
+`scripts/analyze_stage5.py` as its executable form.
+
+### Why this decision exists
+
+Freeze §7 names a primary metric and stops. It specifies **no unit of analysis, no test,
+no α, and no rule for judging a difference real** — "confirmatory" is defined by stage
+number rather than by any criterion. Separately, D-012 and D-013 created four experimental
+cells the freeze predates. `POWER_ANALYSIS_v1.md` measured the minimum detectable effect
+at 0.28–0.57 paired NLL, which permits exactly one confirmatory test.
+
+Decision:
+
+- **The analysis plan is adopted as the pre-registered procedure for stage 5**, and is
+  committed **before any stage-5 run executes**. The commit timestamp is what makes the
+  result confirmatory.
+- **One primary endpoint, one test**: per-event paired CNP−AdaCNP difference in held-out
+  event-period Gaussian NLL under D-010, seeds averaged, in the **temperature/sampled**
+  cell, by two-sided paired *t*-test at α = 0.05, with the MDE reported beside it.
+- **The primary cell is chosen on fidelity to Hu et al., not on observed effect size.**
+  temperature/nearest showed a marginally larger stage-4 difference (+0.59 vs +0.55) and
+  was **not** chosen. This is recorded so the reasoning is auditable.
+- **Everything else is descriptive** — the other three cells, the calibration metric, all
+  eight freeze §7 secondaries, the served-load diagnostic. No p-values.
+- **Robustness checks are predeclared and are not additional tests**: Wilcoxon signed-rank
+  (disagreement with the *t*-test ⇒ report **inconclusive**, never select the favourable
+  one), a sensitivity excluding folds with fewer than two held-out days, and a
+  leave-one-fold-out jackknife.
+- **The decision rule is fixed in advance**, including the null branch: a non-significant
+  result is reported as "no detectable difference, MDE = X, Hu et al.'s margin lies below
+  the MDE, so this neither confirms nor refutes the source finding" — and expressly **not**
+  as a failure to replicate.
+- **Fixed design.** No optional stopping, no added seeds after seeing *p*, no post-hoc
+  cell reselection. Departures go in the plan's deviations register.
+
+### Ratification
+
+Authored on PI instruction ahead of an unattended overnight run, with the three
+substantive choices — primary cell, sidedness, secondary-metric scope — confirmed by the
+PI in advance. **It remains pending formal ratification.** If on review the PI would have
+chosen differently, that variant is to be reported as well, clearly labelled post-hoc,
+with the pre-committed version primary. The pre-registration survives either way.
+
+Not authorized by this decision: any change to the freeze, the censoring ruling, the seed
+count, or the stage gates.

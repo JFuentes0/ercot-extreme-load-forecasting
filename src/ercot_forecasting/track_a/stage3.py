@@ -305,9 +305,7 @@ def run_arm(
     config: Stage3Config,
 ) -> ArmResult:
     """Train one arm on non-event days and evaluate on non-event validation."""
-    model = build_arm_model(
-        arm, scaffold_config, dataset.train.x.shape[1], config.seed
-    )
+    model = build_arm_model(arm, scaffold_config, dataset.train.x.shape[1], config.seed)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     generator = seeded_generator(config.seed)
     n_train = len(train_episodes)

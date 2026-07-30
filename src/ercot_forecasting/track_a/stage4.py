@@ -55,13 +55,22 @@ from ercot_forecasting.track_a.context_conditions import (
 )
 from ercot_forecasting.track_a.event_eligibility import EligibleEvents
 from ercot_forecasting.track_a.features import (
+    FEATURE_DIM,
+    FEATURE_DIM_WITH_TEMPERATURE,
     LAG_HOURS,
+    TEMP_LAG_HOURS,
     EpisodeArrays,
     Normalizer,
     build_episode_arrays,
 )
 from ercot_forecasting.track_a.load_data import CALENDAR_ZONE
 from ercot_forecasting.track_a.losses import gaussian_nll
+from ercot_forecasting.track_a.metrics import (
+    COLD_CONTEXT_QUANTILE,
+    HIGH_LOAD_QUANTILE,
+    SecondaryMetrics,
+    summarize,
+)
 from ercot_forecasting.track_a.partition import (
     BUFFER_DAYS,
     HORIZON,
@@ -207,6 +216,10 @@ class FoldDataset:
     event_x: torch.Tensor
     event_y: torch.Tensor
     event_hours: tuple[pd.DatetimeIndex, ...] = field(repr=False)
+    #: `roll24` at each TRAINING day's issuance cutoff, aligned with
+    #: ``train.days``. Supplies the cold-context-day metric (freeze §7); None
+    #: for the base feature set, where the metric is undefined rather than zero.
+    roll24_at_cutoff: np.ndarray | None = field(default=None, repr=False)
 
 
 def build_fold_dataset(
@@ -262,7 +275,21 @@ def build_fold_dataset(
             normalizer.transform_y(event.y), dtype=torch.float32, device=CPU
         ),
         event_hours=tuple(index.hours[d] for d in event.days),
+        roll24_at_cutoff=_roll24_column(train),
     )
+
+
+def _roll24_column(train: EpisodeArrays) -> np.ndarray | None:
+    """Extract `roll24` at cutoff from a training day's feature vector.
+
+    The temperature block lays out as calendar, load lags, temperature lags,
+    then the derived terms with ``roll24_at_cutoff`` first — so it sits at a
+    known offset and needs no separate plumbing. Returns None for the base
+    feature set, which has no temperature columns at all.
+    """
+    if train.x.shape[1] != FEATURE_DIM_WITH_TEMPERATURE:
+        return None
+    return train.x[:, FEATURE_DIM + TEMP_LAG_HOURS].copy()
 
 
 def read_context_indices(path: str | Path) -> np.ndarray:
@@ -371,7 +398,12 @@ def _assert_retrieval_excludes_holdout(
 
 @dataclass(frozen=True)
 class CensoredScore:
-    """Held-out-event scores under the adopted D-010 treatment."""
+    """Held-out-event scores under the adopted D-010 treatment.
+
+    ``secondary`` carries the freeze §7 metrics, computed over the *same* scored
+    hours as the primary metric so they describe the same estimand. They are
+    descriptive: freeze §7 states they do not adjudicate the comparison.
+    """
 
     primary_nll: float
     served_load_nll: float
@@ -380,10 +412,34 @@ class CensoredScore:
     retained_unresolved_hours: int
     total_hours: int
     min_scale: float
+    secondary: SecondaryMetrics | None = None
 
     @property
     def excluded_fraction(self) -> float:
         return self.excluded_verified_shed_hours / self.total_hours
+
+
+def cold_context_mask(
+    dataset: FoldDataset,
+    episodes: EpisodeSet,
+    rows: np.ndarray,
+) -> np.ndarray | None:
+    """Mark which of each episode's context days are cold (freeze §7, D-012).
+
+    "Cold" is defined per fold, as a context day whose cutoff `roll24` falls
+    below the ``COLD_CONTEXT_QUANTILE`` of the fold's own training pool — a
+    relative definition, so no absolute temperature is hard-coded and the metric
+    travels to a different record unchanged.
+
+    Returns ``None`` for the base feature set, where no temperature column
+    exists and the metric is genuinely undefined rather than zero.
+    """
+    if dataset.roll24_at_cutoff is None:
+        return None
+    pool = dataset.roll24_at_cutoff
+    threshold = float(np.quantile(pool, COLD_CONTEXT_QUANTILE))
+    picked = episodes.context_indices[rows]
+    return (pool[picked] < threshold).astype(np.float64)
 
 
 def score_held_out_event(
@@ -409,6 +465,21 @@ def score_held_out_event(
     shed_count, all_count = 0, 0
     excluded, unresolved = 0, 0
     min_scale = float("inf")
+
+    # Collected over the SCORED hours only, so the secondary metrics describe
+    # the same estimand as the primary (freeze §7, D-010).
+    kept_target: list[np.ndarray] = []
+    kept_mean: list[np.ndarray] = []
+    kept_scale: list[np.ndarray] = []
+    kept_weights: list[np.ndarray] = []
+    kept_cold: list[np.ndarray] = []
+
+    # The high-load threshold comes from the fold's TRAINING partition, never
+    # from the held-out event -- deriving it from the data being scored would
+    # leak the very tail behaviour the metric is meant to probe.
+    high_load_threshold = float(
+        np.quantile(dataset.train_y.numpy(), HIGH_LOAD_QUANTILE)
+    )
 
     with torch.no_grad():
         for start in range(0, len(episodes), config.eval_batch):
@@ -443,8 +514,34 @@ def score_held_out_event(
             shed_count += int((~shed).sum())
             excluded += int(shed.sum())
 
+            keep = ~shed
+            kept_target.append(target_y.numpy()[keep])
+            kept_mean.append(prediction.mean.numpy()[keep])
+            kept_scale.append(prediction.scale.numpy()[keep])
+
+            # Context weights are per-episode, not per-hour, so an episode is
+            # included whenever any of its hours survived the exclusion.
+            episode_kept = keep.reshape(len(rows), -1).any(axis=1)
+            weights = getattr(prediction, "weights", None)
+            if weights is not None:
+                kept_weights.append(
+                    weights.numpy().reshape(len(rows), -1)[episode_kept]
+                )
+                cold = cold_context_mask(dataset, episodes, rows)
+                if cold is not None:
+                    kept_cold.append(cold[episode_kept])
+
     if shed_count == 0:
         raise Stage4Error("every held-out hour was excluded; no primary metric exists")
+
+    secondary = summarize(
+        target=np.concatenate(kept_target),
+        mean=np.concatenate(kept_mean),
+        scale=np.concatenate(kept_scale),
+        high_load_threshold=high_load_threshold,
+        weights=np.concatenate(kept_weights) if kept_weights else None,
+        cold_mask=np.concatenate(kept_cold) if kept_cold else None,
+    )
 
     return CensoredScore(
         primary_nll=shed_total / shed_count,
@@ -454,6 +551,7 @@ def score_held_out_event(
         retained_unresolved_hours=unresolved,
         total_hours=all_count,
         min_scale=min_scale,
+        secondary=secondary,
     )
 
 
@@ -677,6 +775,12 @@ def write_run_manifest(
         "served_load_nll_estimand": "served load, not latent demand",
         "total_held_out_hours": score.total_hours,
         "min_predicted_scale": score.min_scale,
+        # Freeze §7 secondary metrics. Reported for interpretation; they do not
+        # adjudicate the comparison. Definitions pre-registered in
+        # docs/track_a/ANALYSIS_PLAN_v1.md.
+        "secondary_metrics": (
+            score.secondary.as_dict() if score.secondary is not None else None
+        ),
         "train_episodes": result.train_episodes,
         "held_out_episodes": result.event_episodes,
         "initial_training_loss": result.initial_loss,
