@@ -631,21 +631,30 @@ def _mean_nll(
     return total / count
 
 
-def run_fold_arm(
+@dataclass
+class TrainedArm:
+    """A trained arm plus the diagnostics that describe how it was selected."""
+
+    model: torch.nn.Module
+    losses: list[float]
+    inner_validation_nll: float
+    selected_step: int
+    trace: tuple[tuple[int, float], ...]
+
+
+def train_fold_arm(
     arm: str,
     scaffold_config: dict[str, Any],
     dataset: FoldDataset,
     train_episodes: EpisodeSet,
-    event_episodes: EpisodeSet,
-    censoring: CensoringIndex,
     config: Stage4Config,
-) -> Stage4ArmResult:
-    """Train one arm on the fold's training partition and score the held-out event.
+) -> TrainedArm:
+    """Train one arm on the fold's training partition and return the model.
 
     **Stopping is decided on inner validation, never on the held-out event.**
     The training episodes are split chronologically; the model is evaluated on
     the later block every ``eval_every`` steps and the parameters with the best
-    inner-validation NLL are the ones scored.
+    inner-validation NLL are the ones returned.
 
     This matters more than it looks. Held-out extreme-event NLL is strongly
     non-monotone in training length — with the base feature set it *degrades* as
@@ -653,6 +662,10 @@ def run_fold_arm(
     reported number an artifact of that choice. Selecting on the held-out event
     would be leakage; selecting on inner validation is the leakage-free
     equivalent, and it is what makes the arms comparable to each other.
+
+    Separated from :func:`run_fold_arm` so that prediction capture can reuse the
+    exact training path rather than reimplementing it — a second copy of this
+    loop would be free to drift from the one that produced the results.
     """
     model = _build_model(arm, scaffold_config, dataset.train.x.shape[1], config.seed)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
@@ -704,23 +717,45 @@ def run_fold_arm(
                 }
 
     model.load_state_dict(best_state)
-    score = score_held_out_event(model, dataset, event_episodes, censoring, config)
+    return TrainedArm(
+        model=model,
+        losses=losses,
+        inner_validation_nll=best_val,
+        selected_step=best_step,
+        trace=tuple(trace),
+    )
+
+
+def run_fold_arm(
+    arm: str,
+    scaffold_config: dict[str, Any],
+    dataset: FoldDataset,
+    train_episodes: EpisodeSet,
+    event_episodes: EpisodeSet,
+    censoring: CensoringIndex,
+    config: Stage4Config,
+) -> Stage4ArmResult:
+    """Train one arm and score the held-out event under D-010."""
+    trained = train_fold_arm(arm, scaffold_config, dataset, train_episodes, config)
+    score = score_held_out_event(
+        trained.model, dataset, event_episodes, censoring, config
+    )
 
     return Stage4ArmResult(
         event_id=dataset.partition.fold.event_id,
         arm=arm,
         trainable_parameters=sum(
-            p.numel() for p in model.parameters() if p.requires_grad
+            p.numel() for p in trained.model.parameters() if p.requires_grad
         ),
-        initial_loss=losses[0],
-        final_loss=losses[-1],
+        initial_loss=trained.losses[0],
+        final_loss=trained.losses[-1],
         score=score,
         context_file_sha256=event_episodes.context_file.sha256,
         train_episodes=len(train_episodes),
         event_episodes=len(event_episodes),
-        inner_validation_nll=best_val,
-        selected_step=best_step,
-        inner_validation_trace=tuple(trace),
+        inner_validation_nll=trained.inner_validation_nll,
+        selected_step=trained.selected_step,
+        inner_validation_trace=trained.trace,
     )
 
 
