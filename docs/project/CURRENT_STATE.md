@@ -23,16 +23,47 @@ when a task explicitly states `TRACK=B`.
 
 ## Current stage
 
-Synthetic scaffold complete and committed. Track A experiment freeze committed. Preparing the
-first verified real-data import and normal-period validation.
+Synthetic scaffold complete. Track A experiment freeze committed. **Minimal verified import
+complete; execution stages 3 and 4 both executed for both arms.** The censoring-treatment
+ruling is **adopted** (D-010) and applied. The stage-4 exploratory experiment is **executed**
+under D-011. Stages 5 and 6 remain **blocked**.
 
 The Track A synthetic scaffold (`TRACK-A-SCAFFOLD-001`) is implemented and committed: nine
-modules, 21 passing tests, CPU-only, synthetic fixtures only. Trainable parameter counts are
-CNP 110,512 and AdaCNP 123,569, with an identical shared encoder/decoder backbone.
+modules, 21 passing tests, CPU-only, synthetic fixtures only. Scaffold trainable parameter
+counts were CNP 110,512 and AdaCNP 123,569, with an identical shared encoder/decoder backbone.
 
-**No artifact has been imported yet.** Real-data import is authorized in principle by D-008
-but occurs only through `TRACK-A-REAL-DATA-READINESS-001`, and only for artifacts identified
-and hash-verified by that task.
+**Real-data import** — the controlling load artifact (D-009), the controlling headline event
+inventory (D-006), the three V7 censoring artifacts, and the regional temperature index
+(D-012), each hash-verified at source and destination and recorded in
+`docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv`. No artifact outside that set has been imported.
+
+`regional_index.parquet` is the **definitional basis of the controlling event inventory**:
+every inventory `peak_val` equals its `roll24` at the corresponding `peak` timestamp, verified
+for all inventory rows and asserted by test. Importing it added no new data source; it imported
+the source the frozen event definition already depended on.
+
+**Stage 3 has been executed** for both arms at seed `20260729` under D-008, with zero
+event-period hours in any batch and byte-identical context-index files consumed by both arms.
+Run manifests are at `runs/track_a/stage3/`. Real-data trainable parameter counts are
+CNP 115,888 and AdaCNP 130,289.
+
+**Stage 4 has been executed** under D-011, as a factorial over the replication-fidelity axes
+identified in `docs/track_a/REPLICATION_FIDELITY_v1.md`: events E08/E14/E21 × arms CNP/AdaCNP
+× feature set (base, temperature) × context condition (nearest, sampled) × all three frozen
+seeds, with the D-010 censoring treatment applied throughout. Run manifests are at
+`runs/track_a/stage4/`; results are reported in
+`docs/track_a/STAGE4_EXPLORATORY_RESULTS_v1.md`. **Every stage-4 result is exploratory and
+adjudicates nothing**; the confirmatory comparison is stages 5 and 6, which remain blocked.
+
+**A leakage defect found and fixed 2026-07-29.** The first stage-4 execution computed the
+episode lag span from the target day's first hour instead of from the issuance cutoff — two
+instants ~15 hours apart — so the ±7-day buffer under-excluded and 11 of 17 folds admitted one
+training day each whose lag features reached into the buffered window. Both originally executed
+folds were affected. **No event-window hour leaked**, so the scientific impact was small, but
+the guarding test hard-coded the same wrong constant and so could not fail. Both are fixed;
+`stage4.episode_lag_start` now derives the span from `issuance_cutoff_utc`, and
+`tests/shared/test_frozen_constants.py` carries a regression guard that recomputes the
+expectation from the load axis.
 
 ## Governance decisions in force
 
@@ -43,6 +74,11 @@ and hash-verified by that task.
 | D-007 | UTC canonical axis; `America/Chicago` calendar; 09:00 CT D-1 issuance — resolves IB-3 |
 | D-008 | Track A real-data execution gate, **stage 3 only** — normal-period validation |
 | D-009 | Controlling Track A load artifact; bounded IB-2 disposition |
+| D-010 | Censoring-treatment ruling **adopted** — satisfies the freeze §11.1 stage-4 gate |
+| D-011 | Stage-4 execution gate granted; exploratory trio confirmed as E08/E14/E21 |
+| D-012 | Temperature features adopted; `regional_index.parquet` imported as controlling |
+| D-013 | Context-construction conditions — nearest-neighbour **and** paper-faithful sampling |
+| D-014 | Stopping rule chosen on inner validation, never on the held-out event |
 
 ## Track A load artifact (D-009)
 
@@ -52,8 +88,10 @@ and hash-verified by that task.
 | `ercot_hourly_load_harmonized.csv` | `9f1817f78d1bb56ad3c5ea08b95b83e235616bd90ff85809182841f36f09bb35` | **EXCLUDED.** Documented stale pre-CC-8 delivery (F-06). Not importable, not substitutable, not an equivalent copy. Remains in place as historical provenance evidence. |
 | `ercot_hourly_load_harmonized.csv.gz` | `e4d300b36fdbd56a8e86e660b9770ad5888e348e62a2ae136ddb5ad7ff55579e` | **GOVERNANCE-QUARANTINED.** Remains in place; must not be modified, decompressed, parsed, opened for content comparison, moved, renamed, copied into the repository, or deleted. Metadata-only checks (`stat`, `file`, `sha256sum`) remain permitted. No inference is adopted about its decompressed contents. |
 
-The load artifact has **not** been imported. D-009 authorizes the verification and copy;
-it has not been performed.
+The load artifact **has been imported** under D-009 at the controlling digest `272af17c…`,
+verified byte-exact at source and destination, and is recorded in
+`docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv`. The excluded and quarantined contents remain in
+place, unmodified, and were not read for content.
 
 ## Track A experiment freeze
 
@@ -63,45 +101,50 @@ Freezes the CNP/AdaCNP comparison, the controlled-comparison requirement, episod
 context definitions, Gaussian output, primary and calibration metrics, three seeds, nine
 required validations, and six sequential execution stages.
 
-Execution stages **1 and 2 (synthetic) are complete**. Stage **3 (normal-period validation)
-is authorized** by D-008, restricted to non-event periods. Stages **4, 5, and 6 remain
-blocked**.
+Execution stages **1, 2 (synthetic), 3 (normal-period validation), and 4 (exploratory
+held-out-event) are complete**. Stage 3 was executed under D-008, restricted to non-event
+periods; stage 4 under D-011, exploratory only. Stages **5 and 6 remain blocked**.
 
 ## Next authorized implementation task
 
-`TRACK-A-REAL-DATA-READINESS-001` — verified real-data pipeline, stage-3 normal-period
-validation, and preparation of the stage-4 exploratory runs. See `docs/project/NEXT_TASK.md`.
+`TRACK-A-REAL-DATA-READINESS-001` is **complete**, and the stage-4 exploratory experiment it
+prepared has since been executed under D-011.
 
-Seven workstreams: packaging cleanup, minimal verified import, data validation, partition and
-issuance safeguards, stage-3 normal-period validation, a censoring-ruling **draft**, and
-preparation of six exploratory runs that must **not** be executed.
+**No implementation task is currently authorized.** Stages 5 and 6 — the full leave-one-event-out
+sweep and the confirmatory comparison — are blocked by their sequential gates, and D-011
+expressly does not grant them. Opening stage 5 requires a further recorded decision.
 
-**Next permitted execution step (D-009):** resume workstream 2 at the stopped load-artifact
-portion — verify the adopted clean content's complete SHA-256 and its 54,688,032-byte size
-*before* copying, copy only that exact content, verify the destination digest after copying,
-and then update `docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv` to record the complete digest and
-D-009 as the governing decision. Remaining minimal-import work proceeds only for artifacts
-independently identified, hash-verified, governed, and permitted by the existing task.
-
-**Stage 3 has not begun and may not begin** until every import, data-validation, partition,
-issuance-time, leakage, and acceptance prerequisite imposed by D-008, `NEXT_TASK.md`, and the
-experiment freeze has passed and been documented. D-008 remains the stage-3 authority; D-009
-does not authorize stage-3 execution.
+**Before any stage-5 decision**, the exploratory results should be read against their stated
+limitations: one seed, three events, no variance estimate, and normalized units that are not
+comparable across folds. See `docs/track_a/STAGE4_EXPLORATORY_RESULTS_v1.md` §2.1 and §4.
 
 ## Still blocked
 
-- **held-out-event model predictions;**
-- **held-out-event performance inspection;**
-- freeze execution stages 4, 5, and 6;
-- adoption of the censoring-treatment ruling (freeze §11.1) — gates stage 4;
+- freeze execution stages **5 and 6** — the full leave-one-event-out sweep and the confirmatory
+  comparison. D-011 granted the execution gate for stage 4 only. Opening stage 5 requires a
+  separate recorded decision;
+- held-out-event prediction or scoring for **any event outside the E08/E14/E21 trio**, and at
+  **any seed other than `20260729`**;
+- reporting any stage-4 result as confirmatory or as adjudicating the frozen hypothesis;
 - approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` as a whole;
 - import of any artifact not identified and hash-verified under
   `TRACK-A-REAL-DATA-READINESS-001`;
 - changes to the frozen event inventory;
 - Track B design amendments.
 
-Stage 3 may proceed only with every event-period hour excluded from training, validation, and
-scoring (D-008, freeze §11.1).
+Stage 3 was executed with every event-period hour excluded from training, validation, and
+scoring (D-008, freeze §11.1), asserted by test. Stage 4 scores event-period hours under the
+D-010 treatment: `verified_shed` excluded from the primary metric, `unresolved` retained and
+flagged, all-hours served-load NLL reported as a required diagnostic.
+
+## Recorded corrections to evidence documents
+
+- **`docs/audit/ARTIFACT_INVENTORY_001.md` §8.2 states the candidate inventories carry "19 event
+  rows". The controlling file carries 21.** The imported artifact's digest matches the one
+  declared controlling, so the file is right and the audit's row count is wrong. Recorded here
+  rather than edited into the audit document, which is preserved as historical evidence. D-006
+  cites that section, and its ruling is unaffected: the operative values are derived from the
+  artifact at run time, and the derived load-eligible count is 17.
 
 ## Import blockers
 
@@ -127,7 +170,57 @@ Still deferred, each requiring a separate bounded task:
 | IB-5 | Unreconciled manifest rows and `unknown` artifacts |
 | IB-7 | Four same-name / different-content pairs |
 | — | Approval of the proposed import manifest |
-| — | Censoring treatment of the target series (freeze §11.1) — gates real-data stages |
+
+**Resolved 2026-07-29:** censoring treatment of the target series (freeze §11.1) — adopted by
+**D-010**, instrument `docs/track_a/CENSORING_TREATMENT_RULING_v1.md`. `verified_shed`
+excluded from the primary NLL; `unresolved` retained, flagged, disclosed; all-hours
+served-load diagnostic required; censored likelihood optional. Censoring state does not govern
+event selection.
+
+## Resolved — the proposed E18-for-E21 substitution was declined
+
+`configs/track_a/exploratory_stage4_runs.yaml` (commit `7923593`) proposed replacing **E21** with
+**E18** in the stage-4 exploratory trio, marked `PROPOSED_PENDING_PI_DECISION`. It was put to the
+PI on 2026-07-29 and **declined** by **D-011**, because verification against the controlling
+artifacts contradicted the proposal's stated ground. The committed trio E08/E14/E21 stands, and
+stage 4 was executed on it.
+
+The proposal's ground was that E21's censoring status is unresolvable while E18's is "RESOLVED
+but not clean". Checked against `data/frozen/track_a/v7_demand_censored_v3.csv`:
+
+| Event | Hours | `censor_status` | `source_status` | `confidence` |
+| --- | --- | --- | --- | --- |
+| E18_20240114 | 83 | all `unresolved` | `NOT_RETRIEVED` | `none` |
+| E21_20260125 | 78 | all `unresolved` | `RETRIEVED_VERIFIED` | `none` |
+
+Three findings follow:
+
+1. **Both events are entirely `unresolved`.** Neither is resolved. The substitution does not
+   replace an unknowable with a knowable.
+2. **E21 carries the stronger recorded provenance of the two.** Its 78 hours are
+   `RETRIEVED_VERIFIED`, with a sourced determination that the DOE FPA 202(c) orders are
+   supply-side authorities and not evidence of shed. E18's 83 hours are `NOT_RETRIEVED`. On the
+   controlling record the swap moves *away* from the better-documented event.
+3. **The supporting evidence is not in the record.** The OE-417 sweep, the EIA Appendix B
+   public-appeal filings, and the claim that E16 holds "the strongest affirmative no-shed
+   evidence" appear nowhere in the repository except in that config file's own comments. No
+   hour carries `verified_no_shed`; the state has zero occurrences.
+
+**Interaction with D-010.** D-010 retains `unresolved` hours in the primary metric, flagged and
+disclosed, and records that censoring state does not govern event selection. `unresolved` is the
+state of 1,191 of 1,271 event-hours, including every hour of E18. Under the adopted ruling, E21
+is scorable on exactly the same terms as E18 and as most of the record, which removes the
+premise the substitution rests on.
+
+**Disposition.** Declined by D-011. Reopening it would require either evidence in the
+controlling record that distinguishes E18 from E21, or an explicit decision on a different
+ground — an event-selection decision, not a censoring one — stating that ground and its
+consequences for the exploratory comparison.
+
+Recorded because it was sound: the proposal deliberately rejected E16, the apparently cleanest
+candidate, on the reasoning that substituting the cleanest available event would bias the
+exploratory run toward a favourable result. That instinct about selection bias was correct even
+though the substitution itself did not survive verification.
 
 ## Current task
 
