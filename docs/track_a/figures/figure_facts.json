@@ -1,0 +1,41 @@
+{
+  "manifests": 408,
+  "reliability": {
+    "extreme": 0.6294191919191919,
+    "normal": 0.9631127450980392
+  },
+  "case_study": {
+    "day": "2021-02-18",
+    "hours_outside": 24,
+    "hours": 24,
+    "verified_shed_hours": 0
+  },
+  "prediction_provenance": {
+    "cell": {
+      "feature_set": "temperature",
+      "context_condition": "sampled"
+    },
+    "arm": "AdaCNP",
+    "seed": 20260729,
+    "rows": 17904
+  },
+  "coverage_vs_severity": {
+    "CNP": {
+      "slope": -0.037222791627251686,
+      "r": -0.5523707581484403,
+      "p": 0.021488628761506166,
+      "n": 17
+    },
+    "AdaCNP": {
+      "slope": -0.031142097559786225,
+      "r": -0.5100669205584639,
+      "p": 0.03645527439668085,
+      "n": 17
+    }
+  },
+  "forest": {
+    "n_events": 17,
+    "pooled": 0.45927837691598183,
+    "mde": 0.4953050168193055
+  }
+}

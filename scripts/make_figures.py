@@ -565,8 +565,10 @@ def figure_forest(runs: list[dict], analysis: dict | None) -> dict | None:
         )
     _titled(ax, "Per-event paired difference, CNP \u2212 AdaCNP", subtitle)
     ax.grid(True, axis="x", alpha=0.55)
-    # Inside, lower right: rows are sorted ascending so the lower rows extend
-    # LEFT, leaving the lower-right corner free regardless of fold count.
+    # Headroom on the right so the legend has genuinely empty space to sit in.
+    # Without it the legend box overlapped the widest bottom-row interval.
+    span = float(max(his.max(), abs(los.min())))
+    ax.set_xlim(los.min() - 0.08 * span, his.max() + 0.42 * span)
     ax.legend(loc="lower right", fontsize=9.5)
     _footer(
         ax,

@@ -6,9 +6,10 @@ at all?** Without an answer, neither a positive nor a null stage-5 result is
 interpretable — a null could mean "no effect" or "no power", and nothing in the
 protocol distinguishes them.
 
-Method. The noise is not assumed; it is **measured from the executed stage-4
-grid**. For each (feature set, context condition) cell the grid supplies paired
-CNP−AdaCNP differences over 3 events × 3 seeds, which decompose into:
+Method. The noise is not assumed; it is **measured from the executed sweep** —
+stage 5 when present, otherwise the stage-4 grid. For each (feature set, context
+condition) cell the runs supply paired CNP−AdaCNP differences over events ×
+seeds, which decompose into:
 
 * ``sigma_event``  — between-event spread. Irreducible without more events, and
   more events do not exist: the inventory is what history supplied.
@@ -45,6 +46,7 @@ from scipy import stats
 
 REPO = Path(__file__).resolve().parents[1]
 GRID = REPO / "runs" / "track_a" / "stage4" / "stage4_grid_results.json"
+STAGE5 = REPO / "runs" / "track_a" / "stage5"
 
 #: The load-eligible event count is derived from the inventory at run time
 #: (D-006, freeze §10.1). It is read from the manifests, never written here.
@@ -83,6 +85,34 @@ class Components:
                 + self.sigma_seed**2 / (n_events * n_seeds)
             )
         )
+
+
+def _load_stage5() -> list[dict] | None:
+    """Stage-5 manifests, flattened to the grid-row shape used below.
+
+    Preferred over the stage-4 grid when present: with 17 folds the
+    between-event variance component becomes estimable for the first time. At
+    three events the random-effects estimator went negative and was clipped to
+    zero, which made every reported MDE optimistic.
+    """
+    files = sorted(STAGE5.glob("*/run_manifest_*.json"))
+    if not files:
+        return None
+    rows = []
+    for path in files:
+        run = json.loads(path.read_text(encoding="utf-8"))
+        rows.append(
+            {
+                "feature_set": run["feature_set"],
+                "condition": run["context_condition"],
+                "seed": run["seed"],
+                "event_id": run["event_id"],
+                "arm": run["arm"],
+                "primary_nll": run["primary_nll_latent_demand_normalized_units"],
+                "derived_fold_count": run["derived_fold_count"],
+            }
+        )
+    return rows
 
 
 def _load_grid() -> list[dict]:
@@ -155,7 +185,8 @@ def _derived_fold_count() -> int:
     Never written as a literal here (D-006, freeze §10.1): the manifests record
     what the pipeline derived from the imported inventory at run time.
     """
-    manifests = sorted(GRID.parent.glob("*/run_manifest_*.json"))
+    search = STAGE5 if any(STAGE5.glob("*/run_manifest_*.json")) else GRID.parent
+    manifests = sorted(search.glob("*/run_manifest_*.json"))
     if not manifests:
         print("no stage-4 manifests found", file=sys.stderr)
         raise SystemExit(1)
@@ -255,12 +286,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=20260729)
     args = parser.parse_args(argv)
 
-    rows = _load_grid()
+    rows = _load_stage5()
+    source = "stage 5 (full LOEO)"
+    if rows is None:
+        rows = _load_grid()
+        source = "stage 4 (three-event grid)"
     cells, derived_folds = _components(rows)
     rng = np.random.default_rng(args.seed)
 
     print("=== POWER ANALYSIS — leave-one-event-out CNP vs AdaCNP ===")
-    print(f"  grid runs                {len(rows)}")
+    print(f"  source                   {source}")
+    print(f"  runs                     {len(rows)}")
     print(f"  derived load-eligible events (= LOEO folds)   {derived_folds}")
     print(f"  seeds in the freeze      {SEEDS_IN_FREEZE}")
     print(f"  alpha                    {ALPHA}    target power {TARGET_POWER}")
@@ -291,14 +327,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     if clipped:
         print(
-            f"\n  IMPORTANT CAVEAT. sigma_event estimated as zero in {len(clipped)} of\n"
-            f"  {len(cells)} cells ({', '.join(clipped)}). The random-effects estimator\n"
-            "  subtracts the seed term from the observed between-event spread, and on\n"
-            "  three events that difference went negative and was clipped. Read this as\n"
-            "  'seed noise dominates and between-event spread is too small to resolve at\n"
-            "  n=3', NOT as 'events are interchangeable'. Every MDE below is therefore\n"
-            "  OPTIMISTIC: if the true sigma_event exceeds zero, the detectable effect is\n"
-            "  larger than stated. The full sweep would estimate it properly."
+            f"\n  CAVEAT. sigma_event estimated as zero in {len(clipped)} of {len(cells)} "
+            f"cells ({', '.join(clipped)}).\n"
+            "  The random-effects estimator subtracts the seed term from the observed\n"
+            "  between-event spread; where seed noise dominates, that difference goes\n"
+            "  negative and is clipped at zero. Read it as 'between-event spread is too\n"
+            "  small to resolve against the seed noise', NOT as 'events are\n"
+            "  interchangeable'. The MDE for those cells is correspondingly optimistic."
         )
 
     print(f"\n=== MINIMUM DETECTABLE EFFECT at {derived_folds} events ===")

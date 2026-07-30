@@ -23,10 +23,14 @@ when a task explicitly states `TRACK=B`.
 
 ## Current stage
 
-Synthetic scaffold complete. Track A experiment freeze committed. **Minimal verified import
-complete; execution stages 3 and 4 both executed for both arms.** The censoring-treatment
-ruling is **adopted** (D-010) and applied. The stage-4 exploratory experiment is **executed**
-under D-011. Stages 5 and 6 remain **blocked**.
+Synthetic scaffold complete. Track A experiment freeze committed. **Execution stages 1
+through 5 are complete**, and because the stage-5 sweep covered all three frozen seeds it
+also satisfies the content of stage 6. The censoring ruling is adopted (D-010) and applied
+throughout; the stage-5 analysis was **pre-registered** (D-016) and committed before any
+stage-5 run executed.
+
+**Track A's primary scientific question is answered, with stated qualifications.** See
+`docs/track_a/FINDINGS_v1.md`.
 
 The Track A synthetic scaffold (`TRACK-A-SCAFFOLD-001`) is implemented and committed: nine
 modules, 21 passing tests, CPU-only, synthetic fixtures only. Scaffold trainable parameter
@@ -79,6 +83,8 @@ expectation from the load axis.
 | D-012 | Temperature features adopted; `regional_index.parquet` imported as controlling |
 | D-013 | Context-construction conditions — nearest-neighbour **and** paper-faithful sampling |
 | D-014 | Stopping rule chosen on inner validation, never on the held-out event |
+| D-015 | Stage-5 execution gate — full leave-one-event-out sweep |
+| D-016 | Stage-5 analysis plan (pre-registration), **pending PI ratification** |
 
 ## Track A load artifact (D-009)
 
@@ -101,9 +107,23 @@ Freezes the CNP/AdaCNP comparison, the controlled-comparison requirement, episod
 context definitions, Gaussian output, primary and calibration metrics, three seeds, nine
 required validations, and six sequential execution stages.
 
-Execution stages **1, 2 (synthetic), 3 (normal-period validation), and 4 (exploratory
-held-out-event) are complete**. Stage 3 was executed under D-008, restricted to non-event
-periods; stage 4 under D-011, exploratory only. Stages **5 and 6 remain blocked**.
+Execution stages **1 through 5 are complete**, and the stage-5 sweep covered the three
+frozen seeds, so it also satisfies the content of stage 6. Stage 3 ran under D-008
+(non-event only), stage 4 under D-011 (exploratory), stage 5 under D-015 — 408 runs, 17
+folds, both arms, both feature sets, both context conditions, three seeds, **zero
+failures**.
+
+**The stage-5 result is confirmatory**, because its analysis plan was pre-registered and
+committed at `11d3613` before any stage-5 run executed (D-016). The primary test detected an
+**AdaCNP advantage**: mean paired difference +0.4593, 95% CI [+0.1075, +0.8111], two-sided
+paired *t* p = 0.0137, Wilcoxon p = 0.0202 agreeing, over n = 17 events. See
+`docs/track_a/STAGE5_RESULTS_v1.md` and `docs/track_a/FINDINGS_v1.md`.
+
+**Read with the three qualifications the findings state**: the effect sits just below the
+minimum detectable effect (0.495), so power at the observed size was ~77%; only the
+pre-registered cell shows it, with `temperature/nearest` running negative; and it is not a
+measurement of Hu et al.'s effect size, which is an order of magnitude smaller than this
+design can resolve.
 
 ## Next authorized implementation task
 
@@ -120,12 +140,13 @@ comparable across folds. See `docs/track_a/STAGE4_EXPLORATORY_RESULTS_v1.md` §2
 
 ## Still blocked
 
-- freeze execution stages **5 and 6** — the full leave-one-event-out sweep and the confirmatory
-  comparison. D-011 granted the execution gate for stage 4 only. Opening stage 5 requires a
-  separate recorded decision;
-- held-out-event prediction or scoring for **any event outside the E08/E14/E21 trio**, and at
-  **any seed other than `20260729`**;
-- reporting any stage-4 result as confirmatory or as adjudicating the frozen hypothesis;
+- **any seed beyond the three frozen in freeze §8** — raising the count would amend a frozen
+  item and needs its own decision. The power analysis identifies it as the cheapest available
+  improvement, which is a reason to decide it, not to assume it;
+- **any change to the pre-registered analysis** without an entry in the plan's deviations
+  register;
+- reporting any exploratory output — the four presentation figures, the descriptive cells, the
+  freeze §7 secondaries — as confirmatory;
 - approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` as a whole;
 - import of any artifact not identified and hash-verified under
   `TRACK-A-REAL-DATA-READINESS-001`;

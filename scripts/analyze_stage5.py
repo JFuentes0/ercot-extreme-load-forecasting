@@ -137,28 +137,51 @@ def _wilcoxon(values: list[float]) -> float:
         return float("nan")
 
 
+def _two_sided_power(effect: float, sd: float, n: int) -> float:
+    """Power of the two-sided one-sample t-test at ``effect``.
+
+    ``scipy.stats.nct.cdf`` returns **NaN** for large non-centrality (ncp above
+    roughly 8-10). Left unguarded that is silently destructive here: NaN fails
+    every ``>=`` comparison, so a bisection reads "cannot evaluate" as "not
+    enough power" and walks the answer upward. It reported an MDE of 2.36 where
+    the true value is 0.49 — a five-fold overstatement, in a number that appears
+    in the headline verdict.
+
+    Where the exact form is unavailable the normal approximation is used
+    instead. It is accurate precisely in the large-ncp regime where `nct` fails,
+    and there power is indistinguishable from 1 anyway.
+    """
+    se = sd / np.sqrt(n)
+    ncp = effect / se
+    crit = stats.t.ppf(1.0 - ALPHA / 2.0, df=n - 1)
+    exact = (
+        1.0
+        - stats.nct.cdf(crit, df=n - 1, nc=ncp)
+        + stats.nct.cdf(-crit, df=n - 1, nc=ncp)
+    )
+    if np.isfinite(exact):
+        return float(exact)
+    return float(stats.norm.cdf(ncp - crit) + stats.norm.cdf(-ncp - crit))
+
+
 def _mde(values: list[float], n: int) -> float:
     """Minimum detectable effect at 80% power, from the observed spread.
 
-    Uses the non-central t formulation rather than a normal approximation,
-    because n is small enough for the difference to matter.
+    Bisects on :func:`_two_sided_power`, which is monotone increasing in the
+    effect, so the bracket is guaranteed to contain the crossing.
     """
     if len(values) < 2:
         return float("nan")
     sd = float(np.std(values, ddof=1))
     if sd == 0.0:
         return 0.0
-    crit = stats.t.ppf(1.0 - ALPHA / 2.0, df=n - 1)
+
     lo, hi = 0.0, 10.0 * sd
+    if _two_sided_power(hi, sd, n) < 0.80:  # pragma: no cover - defensive
+        return float("nan")
     for _ in range(60):
         mid = 0.5 * (lo + hi)
-        ncp = mid / (sd / np.sqrt(n))
-        power = (
-            1.0
-            - stats.nct.cdf(crit, df=n - 1, nc=ncp)
-            + stats.nct.cdf(-crit, df=n - 1, nc=ncp)
-        )
-        if power >= 0.80:
+        if _two_sided_power(mid, sd, n) >= 0.80:
             hi = mid
         else:
             lo = mid
