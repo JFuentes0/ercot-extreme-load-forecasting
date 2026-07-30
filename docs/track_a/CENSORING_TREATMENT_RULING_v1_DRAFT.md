@@ -1,5 +1,21 @@
-# Censoring Treatment Ruling — v1 **DRAFT**
+# Censoring Treatment Ruling — v1 **DRAFT (SUPERSEDED)**
 
+> ## SUPERSEDED — DO NOT APPLY THIS DOCUMENT
+>
+> This draft was superseded on 2026-07-29 by the adopted ruling at
+> `docs/track_a/CENSORING_TREATMENT_RULING_v1.md`, made under decision **D-010**.
+>
+> It is retained **only** as the record of the recommendation that preceded adoption. It is
+> not the operative ruling, and no scoring may be governed by it. Where this draft and the
+> adopted ruling differ, the adopted ruling controls — in particular, the adopted ruling makes
+> the all-hours served-load diagnostic **required** rather than merely reported, and adds a
+> mandatory disclosure text and an explicit statement that censoring state does not govern
+> event selection.
+>
+> ---
+>
+> *Original draft header, preserved as written:*
+>
 > ## THIS IS A DRAFT. IT IS NOT ADOPTED.
 >
 > No censoring treatment is selected by this document. It has **no** entry in

@@ -73,6 +73,52 @@ def seeded_generator(seed: int) -> torch.Generator:
     return generator
 
 
+def build_arm_model(
+    arm: str,
+    config: dict[str, Any],
+    feature_dim: int,
+    seed: int,
+) -> nn.Module:
+    """Construct one arm at the real feature width, under a fixed seed.
+
+    Both real-data stages route model construction through here so the arms are
+    built identically by one code path rather than by two that happen to agree.
+
+    ``feature_dim`` is passed in rather than read from the configuration: the
+    scaffold config carries a *synthetic* width, and the real feature vector is
+    wider (and wider again with temperature features, D-012). Earlier revisions
+    built a knowingly-wrong config and salvaged fields from it; taking the width
+    from the caller's actual episode arrays removes that step.
+
+    Because the shared assembly builds encoder and decoder before the
+    aggregator, both arms draw the same encoder/decoder initialisation at the
+    same seed (freeze §2).
+    """
+    if arm not in ("CNP", "AdaCNP"):
+        raise ValueError(f"unknown arm {arm!r}; expected 'CNP' or 'AdaCNP'")
+
+    shared = ModelConfig(
+        feature_dim=feature_dim,
+        horizon=config["horizon"],
+        representation_dim=config["representation_dim"],
+        encoder_hidden=config["encoder_hidden"],
+        decoder_hidden=config["decoder_hidden"],
+        scale_floor=float(config["scale_floor"]),
+    )
+
+    torch.manual_seed(seed)
+    if arm == "CNP":
+        return ConditionalNeuralProcess(shared).to(CPU)
+
+    adaptive = AdaptiveModelConfig(
+        shared=shared,
+        embedding_dim=config["embedding_dim"],
+        scoring_hidden=config["scoring_hidden"],
+        temperature=float(config["temperature"]),
+    )
+    return AdaptiveConditionalNeuralProcess(adaptive).to(CPU)
+
+
 def build_cnp(config: dict[str, Any], seed: int) -> ConditionalNeuralProcess:
     """Construct the CNP arm under a fixed seed."""
     torch.manual_seed(seed)

@@ -27,6 +27,7 @@ from ercot_forecasting.track_a.stage3 import (
     select_context_indices,
     write_run_manifest,
 )
+from ercot_forecasting.track_a.stage4 import read_context_indices
 from ercot_forecasting.track_a.train import load_scaffold_config
 
 REPO = Path(__file__).resolve().parents[1]
@@ -94,8 +95,22 @@ def main() -> int:
         dataset.train.days,
         val_indices,
     )
-    train_episodes = EpisodeSet(train_days, train_rows, train_indices, train_context)
-    val_episodes = EpisodeSet(val_days, val_rows, val_indices, val_context)
+    # Re-read the persisted selections from disk. The module docstring claims the
+    # arms consume one file "by construction rather than by coincidence"; passing
+    # the in-memory arrays would have left that claim untested, since the bytes
+    # on disk were never read back.
+    train_episodes = EpisodeSet(
+        train_days, train_rows, read_context_indices(train_context.path), train_context
+    )
+    val_episodes = EpisodeSet(
+        val_days, val_rows, read_context_indices(val_context.path), val_context
+    )
+    assert (train_episodes.context_indices == train_indices).all(), (
+        "persisted training context indices do not round-trip through disk"
+    )
+    assert (val_episodes.context_indices == val_indices).all(), (
+        "persisted validation context indices do not round-trip through disk"
+    )
 
     dropped_train = len(dataset.train) - len(train_days)
     print(
@@ -143,11 +158,22 @@ def main() -> int:
     print(f"  identical loss trace  {identical}")
     print(f"  final loss run 1      {results[0].final_loss:.12f}")
     print(f"  final loss run 2      {repeat.final_loss:.12f}")
+    # Asserted, not merely printed: an acceptance criterion that only appears in
+    # console output is not enforced by anything.
+    if not identical:
+        print("FAILED: two runs at the same seed diverged", file=sys.stderr)
+        return 1
+    if repeat.validation_nll != results[0].validation_nll:
+        print("FAILED: repeated run produced a different metric", file=sys.stderr)
+        return 1
 
     print("\n=== CONTEXT IDENTITY ACROSS ARMS ===")
     same = {r.context_file_sha256 for r in results}
     print(f"  both arms consumed    {len(same)} distinct context file(s)")
     print(f"  sha256                {results[0].context_file_sha256}")
+    if len(same) != 1:
+        print("FAILED: the arms consumed different context files", file=sys.stderr)
+        return 1
 
     print("\n=== SCOPE ===")
     print("  held-out-event prediction : NONE")

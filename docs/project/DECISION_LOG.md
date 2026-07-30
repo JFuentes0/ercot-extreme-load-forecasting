@@ -388,3 +388,379 @@ required by freeze §11.1 is separately adopted through a recorded PI decision.
 Stages 5 and 6 remain blocked by their sequential gates. Track B remains unaffected:
 its frozen design, hypotheses, feature rules, architecture prohibition, and
 historical record are unchanged.
+
+## D-010 — Adoption of the censoring-treatment ruling
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Task: governance pass following TRACK-A-REAL-DATA-READINESS-001
+
+Relates to:
+
+- `docs/track_a/EXPERIMENT_FREEZE_v1.md` §7 (primary metric), §11, §11.1 (censoring
+  treatment, recorded as a hard gate on execution stage 4);
+- decision D-008, which authorized stage 3 only and expressly did not adopt this ruling;
+- decision D-009, which adopted the controlling harmonized load artifact;
+- `docs/track_a/CENSORING_TREATMENT_RULING_v1_DRAFT.md`, the unadopted draft prepared under
+  workstream 6.
+
+Instrument:
+
+- `docs/track_a/CENSORING_TREATMENT_RULING_v1.md` — **ADOPTED**. The draft is superseded and
+  retained only as the record of the recommendation that preceded adoption.
+
+Evidentiary basis:
+
+- Recomputed at adoption time from the imported, hash-verified artifacts
+  `v7_demand_censored_v3.csv` (`3e7bd358…`), `v7_censoring_windows_v3.csv` (`bc51b7c5…`), and
+  `v7_censoring_mapping_rule_v3.md` (`2984b799…`): across 1,271 load-tier event-hours the V7
+  censoring state is **80 `verified_shed`, 1,191 `unresolved`, 0 `verified_no_shed`**, with 71
+  of the 80 `verified_shed` hours falling in E14 (February 2021).
+- The two established shed windows are `W-2011-0202-v3` (E08, 9 hours) and `W-2021-0215-v3`
+  (E14, 71 hours). `W-2021-0215-WIDE-v3` remains `NOT_APPLIED`.
+- The provenance limits recorded in the artifact are carried forward unchanged and are **not**
+  upgraded by this decision: PI-supplied unread quotation for the 2011 window, OCR
+  reproduction for the 2021 window, `NOT_RETRIEVED` source status for 1,113 hours, and
+  `distribution_outage_status` `not_assessed` for every row.
+
+Decision — the five determinations required by freeze §11.1:
+
+1. **`verified_shed` hours are EXCLUDED from the primary latent-demand NLL.** The number
+   excluded must be reported per event in every result table. These are the only hours where
+   the record affirmatively establishes that the observation is a lower bound.
+2. **`unresolved` hours are RETAINED in the primary metric, explicitly flagged, with the
+   limitation disclosed.** This determination is made explicitly and is not a default.
+   Treating them as censored would reclassify 1,191 of 1,271 hours on an inference the record
+   does not support; treating them as uncensored would assert the `verified_no_shed` finding
+   that no hour carries. The residual risk — that some retained `unresolved` hour was in fact
+   shed — is **accepted knowingly and must be disclosed in every affected result**.
+3. **The all-hours served-load NLL diagnostic is REQUIRED, not optional.** It is computed over
+   all 1,271 hours including `verified_shed`, with the estimand explicitly stated as served
+   load rather than latent demand. It is diagnostic only and does not adjudicate the
+   CNP-versus-AdaCNP comparison, which freeze §7 reserves to the primary metric.
+4. **A censored Gaussian likelihood is an OPTIONAL sensitivity.** If implemented it must be
+   applied identically to both arms and reported alongside, never in place of, the primary
+   metric.
+5. **Disclosure language is mandatory** in every table, figure, and log reporting event-period
+   results, in the terms set out at `CENSORING_TREATMENT_RULING_v1.md` §3.5. A result reported
+   without that disclosure is not a compliant Track A result.
+
+Consequential determination:
+
+- **Censoring state does not govern event selection.** `unresolved` is the majority state of
+  the event record. Under this ruling an event is neither disqualified from scoring nor
+  preferred for scoring on the ground that its hours are `unresolved`. Event selection is
+  governed by the load-eligibility rule (D-006) and by the freeze. Any proposal to include or
+  exclude a specific event on censoring grounds requires its own decision and must state
+  evidence that distinguishes that event from the rest of the record.
+
+Implementation requirement:
+
+- The `verified_shed` exclusion and the `unresolved` flag must be derived at run time from
+  `data/frozen/track_a/v7_demand_censored_v3.csv` and asserted by test. No hour's censoring
+  state may be hard-coded, and no event count or fold count may appear as a literal (D-006,
+  freeze §10.1).
+
+Effect on the stage gates:
+
+- **The freeze §11.1 gate on execution stage 4 is satisfied.**
+- **Stage 4 is not thereby opened.** D-008 granted the real-data execution gate for stage 3
+  and for no other stage. Execution of stage 4 requires a separate recorded decision extending
+  that gate. Stages 5 and 6 remain blocked by their sequential gates.
+
+Not authorized by this decision:
+
+- freeze execution stages 4, 5, or 6, or execution of any prepared stage-4 configuration;
+- held-out-event prediction;
+- held-out-event performance inspection;
+- any substitution, addition, or removal of an event in any run plan;
+- resolution of IB-2, IB-4, IB-5, or IB-7;
+- approval of `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` as a whole;
+- any change to a frozen item;
+- any Track B change.
+
+Authority and approval boundary:
+
+- Made by Jonathan Fuentes under his present project decision authority.
+- **No approval by John Brewer is claimed or implied.** Not mentor ratification, not
+  institutional approval, and not the formal Data Readiness Decision. It does not amend DR-1
+  or the historical Phase 1 record.
+
+## D-011 — Stage-4 execution gate, and composition of the exploratory trio
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Relates to:
+
+- `docs/track_a/EXPERIMENT_FREEZE_v1.md` §3 (LOEO partition, ±7-day buffer), §7 (primary
+  metric), §10 (execution stages, exploratory labelling), §11.1;
+- D-008, which granted the real-data execution gate for stage 3 only;
+- D-010, which adopted the censoring-treatment ruling and thereby satisfied the §11.1 gate;
+- `configs/track_a/exploratory_stage4_runs.yaml`, prepared under
+  TRACK-A-REAL-DATA-READINESS-001 workstream 7;
+- commit `7923593`, which proposed substituting E18 for E21 and marked the proposal
+  `PROPOSED_PENDING_PI_DECISION`.
+
+### Part 1 — the exploratory trio is E08, E14, E21; the E18 substitution is DECLINED
+
+Decision:
+
+- **The exploratory trio remains E08_20110202, E14_20210212, and E21_20260125**, as named in
+  the committed `NEXT_TASK.md`. No substitution is adopted.
+- **The proposed substitution of E18_20240114 for E21_20260125 is declined.**
+
+Ground for declining, verified at decision time against
+`data/frozen/track_a/v7_demand_censored_v3.csv`:
+
+| Event | Hours | `censor_status` | `source_status` | `confidence` |
+| --- | --- | --- | --- | --- |
+| E18_20240114 | 83 | all `unresolved` | `NOT_RETRIEVED` | `none` |
+| E21_20260125 | 78 | all `unresolved` | `RETRIEVED_VERIFIED` | `none` |
+
+- The proposal's stated premise was that E21's censoring status is unresolvable while E18's is
+  "RESOLVED but not clean". **The controlling artifact does not support this.** Both events are
+  entirely `unresolved`, and E21 carries the stronger recorded provenance of the two.
+- The supporting evidence cited for E18 — the OE-417 sweep, the EIA Electric Power Monthly
+  Appendix B public-appeal filings, and the claim that E16 holds the strongest affirmative
+  no-shed evidence — **appears nowhere in the imported record**, only in that configuration
+  file's own comments. No hour in the artifact carries `verified_no_shed`.
+- **D-010 moots the premise.** `unresolved` is the state of 1,191 of 1,271 event-hours,
+  including every hour of E18. D-010 retains those hours in the primary metric, flagged and
+  disclosed, and records that censoring state does not govern event selection. Under the
+  adopted ruling E21 is scorable on exactly the same terms as E18.
+
+Recorded so the reasoning is not lost: the proposal's deliberate rejection of E16 — the
+apparently cleanest candidate — on anti-bias grounds was sound reasoning about selection bias,
+and is preserved here as the correct instinct even though the substitution itself is declined.
+
+### Part 2 — the real-data execution gate is extended to stage 4
+
+Decision:
+
+- **The real-data execution gate is extended to freeze execution stage 4**, the exploratory
+  held-out-event experiment, and to no further stage. D-008's stage-3-only restriction is
+  superseded to this extent and in no other respect.
+- **Stages 5 and 6 remain blocked** by their sequential gates. Nothing here authorizes the full
+  leave-one-event-out sweep, the confirmatory comparison, or any result intended as
+  confirmatory.
+- **Held-out-event prediction and held-out-event performance inspection are authorized for the
+  three trio events only**, at the frozen seed `20260729`, for both arms.
+- **Every stage-4 result is EXPLORATORY** and must be labelled so in every table, figure, and
+  log (freeze §10). No stage-4 result may be reported as adjudicating the CNP-versus-AdaCNP
+  hypothesis.
+- **D-010 governs the metric.** `verified_shed` hours are excluded from the primary
+  latent-demand NLL; `unresolved` hours are retained and flagged; the all-hours served-load NLL
+  diagnostic is required; the D-010 §3.5 disclosure language is mandatory on every result.
+- **The frozen structural protections continue to bind**: leave-one-event-out outer partition,
+  ±7-day buffer excluded from training **and** context retrieval, issuance restricted to 09:00
+  `America/Chicago` on D-1, both arms consuming byte-identical persisted context indices, and
+  normalization fitted on the outer training partition only.
+
+Rationale for granting now: the two conditions the freeze placed on stage 4 are both met —
+stage 3 has passed for both arms with zero event-period hours and byte-identical context
+indices, and the censoring ruling is adopted. The PI was advised that inspecting exploratory
+event results cannot be undone for the purpose of later design choices, and elected to proceed.
+
+Not authorized by this decision:
+
+- freeze execution stages 5 and 6;
+- any event outside the trio for held-out scoring;
+- any seed other than `20260729` at stage 4;
+- reporting any stage-4 result as confirmatory, or as adjudicating the frozen hypothesis;
+- any change to the frozen design, the event inventory, or the adopted censoring ruling;
+- resolution of IB-2, IB-4, IB-5, or IB-7;
+- any Track B change.
+
+Authority and approval boundary:
+
+- Made by Jonathan Fuentes under his present project decision authority.
+- **No approval by John Brewer is claimed or implied.** Not mentor ratification, not
+  institutional approval, and not the formal Data Readiness Decision.
+
+## D-012 — Temperature features and the regional temperature artifact
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Relates to:
+
+- `docs/track_a/EXPERIMENT_FREEZE_v1.md` §3, which contemplates weather among the retrieval
+  inputs, and §5 / D-007, which fix the issuance cutoff;
+- D-006, which adopted `event_inventory_headline.csv` as the controlling event inventory;
+- `docs/track_a/REPLICATION_FIDELITY_v1.md`, deviation **D1**;
+- `docs/audit/PROPOSED_IMPORT_MANIFEST_001.csv` rows 46 and 49.
+
+### The deviation this corrects
+
+Freeze §3 permits weather in the feature set and `NEXT_TASK.md` lists "weather input required
+by the frozen Track A feature design" as import class 3. **The executed stage-3 and stage-4
+pipelines had no weather features at all** — 5 calendar features plus 24 load lags — and no
+decision-log entry recorded that departure, which the freeze preamble requires for any change
+to a frozen item. This entry records it and corrects it.
+
+The gap was material, not cosmetic. Track A's events are selected by a **temperature**
+criterion (`peak_val`, `margin_C`), and the mechanism under test — AdaCNP's target-conditioned
+similarity weighting — was being asked to find cold analogues in a feature space containing no
+temperature. Freeze §7 lists "weight assigned to cold-context days" as a secondary metric,
+which was uncomputable as built.
+
+### Artifact adopted
+
+- `regional_index.parquet`, SHA-256
+  `2c88358be5390a3a9028c83a789c04d3135082b9ffd4236c8f66e2007cf8f788`, 7,019,745 bytes, is
+  adopted as the **controlling Track A regional temperature artifact**. Adoption is
+  content-specific, not filename-based.
+- Verified byte-exact at source and destination before and after copying, and recorded in
+  `docs/audit/TRACK_A_IMPORT_MANIFEST_001.csv`.
+- Columns: `regional_temp_c` (hourly regional temperature) and `roll24` (its 24-hour rolling
+  mean). 276,737 rows spanning 1995-01-01 to 2026-07-27.
+
+### Why this artifact, on evidence
+
+**It is the definitional basis of the controlling event inventory.** Every one of the
+inventory's `peak_val` entries equals this artifact's `roll24` at the corresponding `peak`
+timestamp — verified for **all inventory rows, exactly**, at adoption time, and asserted by
+test. Importing it therefore does not introduce a new data source into Track A; it imports the
+source that the event definition adopted under D-006 already depends on.
+
+That correspondence also settles the timezone question. The parquet index is timezone-naive.
+It is read as **UTC**, on the same basis as `event_eligibility.INVENTORY_NAIVE_ZONE`: the
+`peak_val` correspondence establishes that this artifact and the inventory share one
+convention, and the inventory's UTC reading is independently corroborated against the
+censoring artifact's explicit `ts_utc`. No adopted decision states the convention in words for
+either file; this entry records the inference and the evidence for it. No fixed UTC offset is
+constructed anywhere (D-007).
+
+### Feature set adopted
+
+Two feature sets are authorized, and **both are run**, so the contribution of the temperature
+axis is measured rather than assumed:
+
+| Set | Width | Contents |
+| --- | --- | --- |
+| `base` | 29 | 5 calendar + 24 load lags — the original Track A set, retained as the ablation |
+| `temperature` | 57 | `base` + 24 temperature lags + `roll24` at the cutoff + heating degrees + cooling degrees + a squared term |
+
+The four derived terms stand in for the "non-linear functions of the temperatures" that Hu et
+al. list among their PJM inputs. `roll24` is included because it is the quantity the event
+definition itself uses.
+
+### Issuance discipline preserved
+
+Every temperature feature is **past-observed only**, bounded by the same 09:00
+`America/Chicago` D−1 cutoff as the load lags and enforced by the same `searchsorted` bound.
+**No forecast temperature is used**, because the corpus contains no day-ahead forecast product
+carrying historical issuance timestamps. Hu et al. additionally use the next day's temperature
+forecast for PJM; Track A's temperature features are weaker by exactly that, and the gap is
+recorded in `REPLICATION_FIDELITY_v1.md` rather than papered over.
+
+### Cost disclosed
+
+The temperature artifact has 6,307 null `regional_temp_c` hours and 7,010 null `roll24` hours.
+A day whose temperature lag window contains a null is dropped, which costs **498 of 8,895
+target days (5.6%)** in the `temperature` set. Two folds lose held-out days — E05 falls from 3
+to 1, E07 from 4 to 3 — and **no fold loses all of them**. Every trio event (E08, E14, E21)
+retains all its held-out days. Any E05 result must state that the fold rests on a single day.
+
+Not authorized by this decision: use of forecast weather; import of the station-level
+`ghcnh_hourly_station_qcfiltered.parquet` (identified, hash-recorded, not imported); any change
+to the event inventory, the censoring ruling, or the stage gates; freeze stages 5 or 6.
+
+## D-013 — Context-construction conditions
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Relates to: `EXPERIMENT_FREEZE_v1.md` §3–§4; `REPLICATION_FIDELITY_v1.md` deviation **D2**;
+Hu et al. arXiv:2602.04609 Algorithms 1 and 2.
+
+### The problem
+
+Track A built every context set by **nearest-neighbour retrieval** — the 64 issuance-safe days
+closest to the target in input space — and handed that same set to both arms. Hu et al. instead
+**sample** the context set from the historical pool (Alg. 1 line 3, Alg. 2 line 2), with no
+similarity pre-selection.
+
+That difference cuts against the experiment's own hypothesis. AdaCNP's contribution is
+target-conditioned reweighting of context points; standard CNP's claimed weakness is that
+uniform averaging dilutes irrelevant context. Pre-filtering to 64 already-similar days performs
+part of that relevance selection **in the data pipeline** and gives it to the CNP baseline for
+free, compressing the very gap the experiment measures.
+
+### Decision
+
+Both conditions are authorized and **both are run**:
+
+- **`nearest`** — the 64 issuance-safe days nearest the target in input space. Track A's
+  original condition. Operationally motivated, and a deliberately strong CNP baseline.
+- **`sampled`** — `context_size` days drawn uniformly without replacement from the
+  issuance-safe pool under the run's frozen seed. Faithful to Hu et al.
+
+Both conditions preserve every structural protection: they draw only from the fold's admissible
+pool, so the held-out event and its ±7-day buffer can never supply a context day (freeze §3);
+they respect the issuance cutoff (D-007); they are persisted and re-read per arm so the arms
+provably consume byte-identical indices (Track A rules); and they read **inputs only**, so
+neither can leak a target outcome.
+
+Neither condition is designated primary. The comparison of interest is how the CNP−AdaCNP
+paired difference behaves *across* the two, since that difference is the measurement the
+retrieval choice was distorting.
+
+## D-014 — Stopping rule chosen on inner validation
+
+Status: Adopted
+
+Decision authority: Jonathan Fuentes
+
+Date: 2026-07-29
+
+Relates to: `EXPERIMENT_FREEZE_v1.md` §8, §10; `REPLICATION_FIDELITY_v1.md` deviation **D4**.
+
+### The problem
+
+The original stage-3 and stage-4 runs trained for a fixed **300 optimizer steps**. Hu et al.
+train for roughly 1000 epochs (their Fig. 4). Measured at adoption time on E14, held-out
+extreme-event NLL is **strongly non-monotone in training length**: with the `base` feature set
+it *degrades* from 1.18 to 1.91 (CNP) between 300 and 1000 steps as the model fits the normal
+regime harder, while the `temperature` set *improves* from 4.79 to 1.34 over the same range.
+
+A hand-picked step count therefore makes the reported number an artifact of that choice, and
+the choice moves the result by more than the effect being measured.
+
+### Decision
+
+- **Training length is not fixed by hand.** Each run trains up to a ceiling and the reported
+  parameters are those with the best **inner-validation** NLL.
+- **Inner validation is drawn from the fold's own training partition** — the latest 10% of
+  training episodes, split chronologically, matching the stage-3 convention. It never touches
+  the held-out event.
+- **Selecting on the held-out event is prohibited.** That would be leakage and would invalidate
+  the result. Inner validation is the leakage-free equivalent and is what makes the arms
+  comparable to each other.
+- Every run manifest records the inner-validation NLL, the selected step, and the full
+  evaluation trace, so the choice is auditable rather than implicit.
+
+### Finding recorded
+
+Inner-validation NLL on normal periods is **weakly informative at best** about extreme-event
+NLL: across the E14 grid, inner-validation values spanned 0.21–0.28 while held-out primary NLL
+spanned 1.31–4.39. This is the distribution-shift problem the paper exists to address, observed
+directly in Track A's own data, and it is a limitation of the stopping rule rather than a
+defect in it — no leakage-free alternative selects on the extreme regime.
+
+Not authorized: any stopping rule that inspects held-out-event performance; any change to the
+frozen seeds or stage gates.

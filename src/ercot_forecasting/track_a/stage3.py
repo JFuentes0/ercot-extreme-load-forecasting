@@ -33,24 +33,22 @@ import numpy as np
 import pandas as pd
 import torch
 
-from ercot_forecasting.track_a.adacnp import AdaptiveConditionalNeuralProcess
-from ercot_forecasting.track_a.cnp import ConditionalNeuralProcess
+from ercot_forecasting.track_a.context_conditions import ContextCondition
 from ercot_forecasting.track_a.event_eligibility import derive_eligible_events
 from ercot_forecasting.track_a.features import (
-    FEATURE_DIM,
     EpisodeArrays,
     Normalizer,
     build_episode_arrays,
 )
 from ercot_forecasting.track_a.load_data import load_harmonized
 from ercot_forecasting.track_a.losses import gaussian_nll
-from ercot_forecasting.track_a.partition import HORIZON, stage3_target_days
+from ercot_forecasting.track_a.partition import stage3_target_days
 from ercot_forecasting.track_a.train import (
     CPU,
-    build_adaptive_config,
-    build_model_config,
+    build_arm_model,
     seeded_generator,
 )
+from ercot_forecasting.track_a.weather import RegionalTemperature
 
 #: A candidate context day must end before the target's issuance cutoff. Since
 #: the cutoff is 09:00 local on D-1 and a day's last hour begins at 23:00 local,
@@ -69,6 +67,9 @@ class Stage3Config:
     batch_size: int = 32
     learning_rate: float = 1.0e-3
     eval_batch: int = 256
+    #: How the context set is drawn (D-013). ``NEAREST`` is the original
+    #: behaviour; ``SAMPLED`` is faithful to Hu et al.
+    context_condition: ContextCondition = ContextCondition.NEAREST
 
 
 @dataclass(frozen=True)
@@ -108,13 +109,19 @@ def build_stage3_dataset(
     inventory_path: str | Path,
     load_path: str | Path,
     config: Stage3Config,
+    temperature: RegionalTemperature | None = None,
 ) -> Stage3Dataset:
-    """Assemble non-event episodes, split chronologically, and normalize."""
+    """Assemble non-event episodes, split chronologically, and normalize.
+
+    Passing ``temperature`` adds the D-012 temperature block. Every
+    event-period hour is excluded before any episode is built, whichever feature
+    set is used, so the D-008 stage-3 restriction is unaffected.
+    """
     load = load_harmonized(load_path, usable_only=True)
     eligible = derive_eligible_events(inventory_path, load_path)
     usable, _rejected = stage3_target_days(load, eligible)
 
-    arrays = build_episode_arrays(load, usable)
+    arrays = build_episode_arrays(load, usable, temperature=temperature)
     split = int(len(arrays) * config.train_fraction)
     if split < 1 or split >= len(arrays):
         raise ValueError("train_fraction produces an empty split")
@@ -298,29 +305,9 @@ def run_arm(
     config: Stage3Config,
 ) -> ArmResult:
     """Train one arm on non-event days and evaluate on non-event validation."""
-    model_config = build_model_config(scaffold_config)
-    model_config = type(model_config)(
-        feature_dim=FEATURE_DIM,
-        horizon=HORIZON,
-        representation_dim=model_config.representation_dim,
-        encoder_hidden=model_config.encoder_hidden,
-        decoder_hidden=model_config.decoder_hidden,
-        scale_floor=model_config.scale_floor,
+    model = build_arm_model(
+        arm, scaffold_config, dataset.train.x.shape[1], config.seed
     )
-
-    torch.manual_seed(config.seed)
-    if arm == "CNP":
-        model = ConditionalNeuralProcess(model_config).to(CPU)
-    else:
-        adaptive = build_adaptive_config(scaffold_config)
-        adaptive = type(adaptive)(
-            shared=model_config,
-            embedding_dim=adaptive.embedding_dim,
-            scoring_hidden=adaptive.scoring_hidden,
-            temperature=adaptive.temperature,
-        )
-        model = AdaptiveConditionalNeuralProcess(adaptive).to(CPU)
-
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     generator = seeded_generator(config.seed)
     n_train = len(train_episodes)
