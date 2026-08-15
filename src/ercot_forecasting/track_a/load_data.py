@@ -9,9 +9,9 @@ issuance cutoff, always through the ``zoneinfo`` timezone database. **No fixed
 UTC offset is constructed anywhere in this module** — a spring-forward or
 fall-back day is handled by the database, not by arithmetic on a constant.
 
-The module lives under ``track_a/`` rather than ``shared/`` because ``PROJECT_CHARTER.md``
-requires any shared-module change to carry tests for both tracks, and Track B is
-frozen and not executing.
+The module lives under ``track_a/`` rather than ``shared/`` because
+``PROJECT_CHARTER.md`` requires any shared-module change to carry tests for both
+tracks, and Track B is frozen and not executing.
 """
 
 from __future__ import annotations

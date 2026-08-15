@@ -493,8 +493,8 @@ excluded by mentor ruling R-5."
 Track A runs **inside** the NETL SULI project, R-5 governs and requires explicit mentor
 amendment; if Track A is a **separate** project, R-5 does not reach it.
 
-**OBSERVED.** `PROJECT_CHARTER.md` and `PROJECT_CHARTER.md` designate Track A (CNP versus AdaCNP) as the
-primary active experiment, and `PROJECT_CHARTER.md` requires both tracks to share the same frozen
+**OBSERVED.** `PROJECT_CHARTER.md` designates Track A (CNP versus AdaCNP) as the
+primary active experiment, and requires both tracks to share the same frozen
 scientific foundation — which is the foundation R-5 belongs to.
 
 **INTERPRETATION and escalation.** This is a live conflict between the historical controlling

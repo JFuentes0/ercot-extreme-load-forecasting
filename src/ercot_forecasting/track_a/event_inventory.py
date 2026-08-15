@@ -18,8 +18,8 @@ an explicit IANA zone. It will not guess, and it will not apply a constant
 offset.
 
 This module lives under `track_a/` rather than `shared/` deliberately: per
-`PROJECT_CHARTER.md`, any shared-module change requires tests for both tracks, and Track
-B is frozen and not being executed by this task.
+`PROJECT_CHARTER.md`, any shared-module change requires tests for both tracks,
+and Track B is frozen and not being executed by this task.
 """
 
 from __future__ import annotations
